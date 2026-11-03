@@ -145,20 +145,19 @@ const span=()=>P.budget?2:1,dur=()=>Math.max(frames.length*span()/P.fps,...notes
 async function openP(id,r){const d=await getDoc(doc(db,'projects',id));P={id,...d.data()};ro=r||!P.members.includes(me.uid);bpm=P.bpm||120;notes=P.midi||[];media=[];clips=[];selC=null;
  const fs=await getDocs(collection(db,'projects',id,'frames'));frames=[];for(const x of fs.docs.map(v=>v.data()))frames[x.i]=await fromDoc(x);
  for(let i=0;i<Math.max(frames.length,1);i++)frames[i]=frames[i]||newF();cf=0;cl=0;T=0;undo=[];redo=[];dirty.clear();P.nf=frames.length;await loadMedia();
- show('#e');$('#pt').textContent=P.title;setStudio('anim');loadNotes(P.notepad);fit();buildTools();render();drawTL();drawRoll();ensure('Piano');
- let first=true;unsub&&unsub();unsub=onSnapshot(collection(db,'projects',id,'frames'),s=>{if(first){first=false;return}s.docChanges().forEach(async c=>{const v=c.doc.data();if(c.doc.metadata.hasPendingWrites||v.by===me.uid||(D&&v.i===cf))return;frames[v.i]=await fromDoc(v);$('#stat').textContent=`${v.byName||'Collaborator'} is editing frame ${v.i+1}`;clearTimeout(unsub.t);unsub.t=setTimeout(()=>$('#stat').textContent='',4000);for(let i=0;i<frames.length;i++)frames[i]=frames[i]||newF();render();drawTL()})})}
+ show('#e');$('#pt').textContent=P.title;setStudio('anim');loadNotes(P.notepad);fit();buildTools();render();drawTL();drawRoll();ensure('Piano');initSync(d.data());
+ let first=true;unsub&&unsub();unsub=onSnapshot(collection(db,'projects',id,'frames'),s=>{if(first){first=false;return}s.docChanges().forEach(async c=>{const v=c.doc.data();if(c.type==='removed'||c.doc.metadata.hasPendingWrites||v.by===SID||(D&&v.i===cf))return;frames[v.i]=await fromDoc(v);$('#stat').textContent=`${v.byName||'Collaborator'} is editing frame ${v.i+1}`;clearTimeout(unsub.t);unsub.t=setTimeout(()=>$('#stat').textContent='',4000);for(let i=0;i<frames.length;i++)frames[i]=frames[i]||newF();render();drawTL()})})}
 const fromDoc=async v=>{const f=newF();await Promise.all((v.l||[]).map((u,k)=>new Promise(r=>{if(!u)return r();const im=new Image();im.onload=()=>{f.L[k].getContext('2d').drawImage(im,0,0);r()};im.src=u})));return f};
 const blank=mk().toDataURL();
-const toDoc=(f,i)=>({i,by:me.uid,byName:me.name,l:f.L.map(c=>{const u=c.toDataURL();return u===blank?'':u})});
+const toDoc=(f,i)=>({i,by:SID,byName:me.name,l:f.L.map(c=>{const u=c.toDataURL();return u===blank?'':u})});
 async function saveAll(manual){if(!P||ro)return;$('#stat').textContent='Saving…';try{
- await updateDoc(doc(db,'projects',P.id),{title:P.title,fps:P.fps,budget:P.budget,published:P.published,bpm,midi:notes,nf:frames.length,notepad:serNotes(),clips:clips.map(c=>({mid:c.mid,s:c.s,in:c.in,out:c.out,gain:c.gain,fi:c.fi,fo:c.fo})),media:media.map(m=>({id:m.id,name:m.name})),updated:serverTimestamp()});
+ ALL.forEach(k=>mdirty.add(k));await flushMeta(true);
  for(let i=0;i<frames.length;i++)await setDoc(doc(db,'projects',P.id,'frames',String(i).padStart(4,'0')),toDoc(frames[i],i));
- for(const m of media)if(!m.saved){const s=b64(m.raw),n=Math.ceil(s.length/700000);for(let k=0;k<n;k++)await setDoc(doc(db,'projects',P.id,'media',m.id+'_'+k),{id:m.id,k,name:m.name,data:s.slice(k*700000,(k+1)*700000)});m.saved=1;m.n=n}
  for(let i=frames.length;i<P.nf;i++)deleteDoc(doc(db,'projects',P.id,'frames',String(i).padStart(4,'0'))).catch(()=>{});P.nf=frames.length;dirty.clear();
  $('#stat').textContent='Saved '+new Date().toLocaleTimeString();manual&&toast('Project saved')}catch(e){$('#stat').textContent='Save failed';toast(e.message)}}
-async function flush(){if(ro)return;for(const i of dirty)if(frames[i])await setDoc(doc(db,'projects',P.id,'frames',String(i).padStart(4,'0')),toDoc(frames[i],i)).catch(()=>{});dirty.clear()}
+async function flush(){if(ro)return;for(const i of dirty)if(frames[i])await setDoc(doc(db,'projects',P.id,'frames',String(i).padStart(4,'0')),toDoc(frames[i],i)).catch(()=>{});dirty.clear();for(let i=frames.length;i<P.nf;i++)deleteDoc(doc(db,'projects',P.id,'frames',String(i).padStart(4,'0'))).catch(()=>{});P.nf=frames.length;pushMeta(['nf'])}
 setInterval(()=>{if(!$('#e').classList.contains('hide'))saveAll(false)},300000);
-$('#sv').onclick=()=>saveAll(true);$('#bk').onclick=()=>{pause();unsub&&unsub();saveAll(false);board()};
+$('#sv').onclick=()=>saveAll(true);$('#bk').onclick=()=>{pause();unsub&&unsub();unsubP&&unsubP();saveAll(false);board()};
 
 /* ---------- STUDIO SWITCH ---------- */
 function setStudio(s){studio=s;$$('#hd nav button').forEach(b=>b.classList.toggle('on',b.dataset.s===s));$('#st').classList.toggle('hide',s!=='anim');$('#sM').classList.toggle('hide',s!=='music');$('#sN').classList.toggle('hide',s!=='note');$('#ptools').classList.toggle('hide',s!=='anim');$('#tl').classList.toggle('hide',s==='note');$('#ly').classList.toggle('hide',s!=='anim');$('#pop').classList.add('hide');$('#lp').classList.add('hide');if(s==='music'){buildMusic();drawRoll();$('#ps').scrollTop=(HI-72)*RH}drawTL()}
@@ -211,7 +210,7 @@ const snapU=()=>({f:frames[cf],l:cl,d:frames[cf].L[cl].getContext('2d').getImage
 const pushU=()=>{undo.push(snapU());if(undo.length>40)undo.shift();redo=[]};
 function doUndo(){const u=undo.pop();if(!u)return;redo.push({f:u.f,l:u.l,d:u.f.L[u.l].getContext('2d').getImageData(0,0,W,H)});u.f.L[u.l].getContext('2d').putImageData(u.d,0,0);u.f.th=null;render();drawTL()}
 function doRedo(){const u=redo.pop();if(!u)return;undo.push({f:u.f,l:u.l,d:u.f.L[u.l].getContext('2d').getImageData(0,0,W,H)});u.f.L[u.l].getContext('2d').putImageData(u.d,0,0);u.f.th=null;render();drawTL()}
-function done(){frames[cf].th=null;if(tool!=='eraser'&&tool!=='move')addRecent();dirty.add(cf);clearTimeout(dt);dt=setTimeout(flush,1200);drawTL()}
+function done(){frames[cf].th=null;if(tool!=='eraser'&&tool!=='move')addRecent();dirty.add(cf);clearTimeout(dt);dt=setTimeout(flush,300);drawTL()}
 ov.onpointerdown=e=>{ov.setPointerCapture(e.pointerId);
  if(tool==='hand'||e.button===1||space){D={k:'pan',x:e.clientX-pan[0],y:e.clientY-pan[1]};return}
  if(ro)return toast('View-only project');
@@ -233,7 +232,7 @@ document.addEventListener('keydown',e=>{const t=e.target;if(t.matches&&t.matches
  if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();doUndo()}if((e.ctrlKey||e.metaKey)&&(e.key==='y'||(e.shiftKey&&e.key==='Z'))){e.preventDefault();doRedo()}
  if(studio==='music'&&selN&&!ro){const n=selN;let h=1;
   if(e.key==='ArrowUp')n.p=Math.min(HI-1,n.p+(e.shiftKey?12:1));else if(e.key==='ArrowDown')n.p=Math.max(LO,n.p-(e.shiftKey?12:1));else if(e.key==='ArrowRight')n.s+=snap;else if(e.key==='ArrowLeft')n.s=Math.max(0,n.s-snap);else if(e.key==='Delete'||e.key==='Backspace'){notes=notes.filter(x=>x!==n);selN=null}else if(e.key==='Escape')selN=null;else h=0;
-  if(h){e.preventDefault();if(selN&&(e.key==='ArrowUp'||e.key==='ArrowDown'))ensure(n.i).then(()=>playNote(n.i,n.p,actx().currentTime,.4));if(selN){const ps=$('#ps'),y=(HI-1-n.p)*RH;if(y<ps.scrollTop+30)ps.scrollTop=y-50;else if(y>ps.scrollTop+ps.clientHeight-50)ps.scrollTop=y-ps.clientHeight+70}drawRoll();drawTL();return}}
+  if(h){e.preventDefault();if(selN&&(e.key==='ArrowUp'||e.key==='ArrowDown'))ensure(n.i).then(()=>playNote(n.i,n.p,actx().currentTime,.4));if(selN){const ps=$('#ps'),y=(HI-1-n.p)*RH;if(y<ps.scrollTop+30)ps.scrollTop=y-50;else if(y>ps.scrollTop+ps.clientHeight-50)ps.scrollTop=y-ps.clientHeight+70}drawRoll();drawTL();pushMeta(['midi']);return}}
  if((e.key==='Backspace'||e.key==='Delete')&&P&&!ro&&!$('#e').classList.contains('hide')&&studio!=='note'){if(selC){e.preventDefault();clipOp(2);return}else if(studio==='anim'){e.preventDefault();frameOp(3);return}}
  if(studio==='music'&&!e.ctrlKey&&!e.metaKey&&!e.repeat){const k='awsedftgyhujk'.indexOf(e.key);if(k>=0)ensure(inst).then(()=>playNote(inst,60+k,actx().currentTime,.6))}});
 document.addEventListener('keyup',e=>{if(e.code==='Space')space=false});
@@ -245,7 +244,7 @@ $('#sett').onclick=()=>{const p=$('#pop');p.classList.toggle('hide');if(p.classL
  p.innerHTML=`<b>Project settings</b><label>Title<input id="s1" value="${esc(P.title)}"></label><label>FPS<input id="s2" type="number" min="1" max="120" value="${P.fps}" style="width:70px"></label><label><span>Budget mode (hold frames 2×)</span><input type="checkbox" id="s3" ${P.budget?'checked':''}></label><label>BPM<input id="s4" type="number" min="40" max="240" value="${bpm}" style="width:70px"></label><label><span>Publish to community</span><input type="checkbox" id="s5" ${P.published?'checked':''}></label>
  <b>Onion skin</b><label>Frames before (0–10)<input id="o1" type="range" min="0" max="10" value="${on.n}"></label><label>Nearest opacity<input id="o2" type="range" min="0" max="100" value="${on.a*100}"></label><label>Falloff<input id="o3" type="range" min="10" max="100" value="${on.d*100}"></label>
  <b>Collaborators</b>${P.members.map((u,i)=>`<label><span>${esc(P.memberNames[i]||'?')}${u===P.owner?' (owner)':''}</span>${me.uid===P.owner&&u!==P.owner?`<button data-rm="${i}" title="Remove">✕</button>`:''}</label>`).join('')}<div class="row"><input id="s6" placeholder="Username" style="flex:1;min-width:0"><button id="s7">Invite</button></div>`;
- $('#s1').oninput=e=>{P.title=e.target.value;$('#pt').textContent=P.title};$('#s2').onchange=e=>{P.fps=Math.max(1,Math.min(120,+e.target.value||24));drawTL()};$('#s3').onchange=e=>{P.budget=e.target.checked;drawTL()};$('#s4').onchange=e=>{bpm=+e.target.value||120;drawRoll();drawTL()};$('#s5').onchange=e=>P.published=e.target.checked;
+ $('#s1').oninput=e=>{P.title=e.target.value;$('#pt').textContent=P.title;pushMeta(['title'])};$('#s2').onchange=e=>{P.fps=Math.max(1,Math.min(120,+e.target.value||24));drawTL();pushMeta(['fps'])};$('#s3').onchange=e=>{P.budget=e.target.checked;drawTL();pushMeta(['budget'])};$('#s4').onchange=e=>{bpm=+e.target.value||120;drawRoll();drawTL();pushMeta(['bpm'])};$('#s5').onchange=e=>{P.published=e.target.checked;pushMeta(['published'])};
  $('#o1').oninput=e=>{on.n=+e.target.value;render()};$('#o2').oninput=e=>{on.a=e.target.value/100;render()};$('#o3').oninput=e=>{on.d=e.target.value/100;render()};
  $$('[data-rm]').forEach(b=>b.onclick=async()=>{const i=+b.dataset.rm;if(!confirm('Remove '+(P.memberNames[i]||'this collaborator')+' from the project?'))return;const m=P.members.filter((_,k)=>k!==i),n=P.memberNames.filter((_,k)=>k!==i);try{await updateDoc(doc(db,'projects',P.id),{members:m,memberNames:n});P.members=m;P.memberNames=n;toast('Collaborator removed');$('#sett').click();$('#sett').click()}catch(e){toast(e.message)}});
  $('#s7').onclick=async()=>{if(await invite(P.id,$('#s6').value,P.title))toast('Invite sent')}};
@@ -275,7 +274,7 @@ tc.onmousedown=e=>{if(e.button)return;const[x,y]=tlPos(e),pps=ZOOM*P.fps;
  if(y<90){const i=Math.floor(x/(span()*ZOOM));if(i>=frames.length)return;pause();selC=null;cf=i;T=i*span()/P.fps;render();setPH();
   const mv=ev=>{drop=Math.min(frames.length,Math.round((ev.clientX-tc.getBoundingClientRect().left)/(span()*ZOOM)));drawTL()};
   const up=()=>{removeEventListener('mousemove',mv);removeEventListener('mouseup',up);if(drop>=0&&!ro){let j=drop>i?drop-1:drop;if(j!==i){const[f]=frames.splice(i,1);frames.splice(j,0,f);cf=j;frames.forEach((_,k)=>dirty.add(k));flush()}}drop=-1;tlSel=-1;drawTL();render()};addEventListener('mousemove',mv);addEventListener('mouseup',up)}
- else{const c=clipAt(x,y,pps);selC=c||null;buildBin();drawTL();if(c&&!ro){const sx=e.clientX,s0=c.s;const mv=ev=>{c.s=Math.max(0,s0+(ev.clientX-sx)/pps);drawTL()};const up=()=>{removeEventListener('mousemove',mv);removeEventListener('mouseup',up);buildBin()};addEventListener('mousemove',mv);addEventListener('mouseup',up)}}};
+ else{const c=clipAt(x,y,pps);selC=c||null;buildBin();drawTL();if(c&&!ro){const sx=e.clientX,s0=c.s;const mv=ev=>{c.s=Math.max(0,s0+(ev.clientX-sx)/pps);drawTL()};const up=()=>{removeEventListener('mousemove',mv);removeEventListener('mouseup',up);buildBin();pushMeta(['clips'])};addEventListener('mousemove',mv);addEventListener('mouseup',up)}}};
 tc.oncontextmenu=e=>{e.preventDefault();const[x,y]=tlPos(e),i=Math.floor(x/(span()*ZOOM)),pps=ZOOM*P.fps;if(y>=90){const c=clipAt(x,y,pps);if(c&&!ro){selC=c;buildBin();drawTL();cmenu(e,['Split at playhead','Duplicate','Delete audio'],clipOp)}return}if(y<28||i>=frames.length||ro)return;cf=i;render();drawTL();
  const m=$('#cm');m.classList.remove('hide');m.style.left=e.clientX+'px';m.style.top=e.clientY-120+'px';m.innerHTML=['Duplicate','Insert blank after','Clear frame','Delete'].map(t=>`<div>${t}</div>`).join('');
  [...m.children].forEach((d,k)=>d.onclick=()=>{m.classList.add('hide');frameOp(k)})};
@@ -342,14 +341,14 @@ function leg(){const el=$('#mleg');if(!el)return;const u=[...new Set([inst,...no
  $$('[data-li]').forEach(b=>b.onclick=()=>{inst=b.dataset.li;const s=$('#mi');if(s)s.value=inst;ensure(inst);leg()});
  $$('[data-lm]').forEach(b=>b.onclick=()=>{const i=b.dataset.lm;muted.has(i)?muted.delete(i):muted.add(i);leg();drawRoll()})}
 const adopt=n=>{if(n.i!==inst){inst=n.i;const s=$('#mi');if(s)s.value=inst;ensure(inst);leg()}};
-function setBpm(v){v=Math.max(40,Math.min(240,Math.round(v)||120));if(playing)pause();bpm=v;['#mbp','#mbr','#s4'].forEach(q=>{const e=$(q);if(e)e.value=v});drawRoll();drawTL()}
+function setBpm(v){v=Math.max(40,Math.min(240,Math.round(v)||120));if(playing)pause();bpm=v;pushMeta(['bpm']);['#mbp','#mbr','#s4'].forEach(q=>{const e=$(q);if(e)e.value=v});drawRoll();drawTL()}
 let taps=[];
 function buildMusic(){$('#mt').innerHTML=`<b>Instrument</b><select id="mi">${insList().map(i=>`<option ${i===inst?'selected':''}>${i}</option>`).join('')}</select><span id="mleg" class="row"></span><button id="mapp" title="Change the selected note to the current instrument">Apply to selected</button><button id="mf">⬆ Upload .sf2</button><input type="file" id="mff" accept=".sf2,.SF2" multiple class="hide"><span class="sep"></span><b>BPM</b><input type="number" id="mbp" min="40" max="240" value="${bpm}" style="width:70px"><input type="range" id="mbr" min="40" max="240" value="${bpm}" style="width:110px"><button id="mtap">Tap</button><span class="sep"></span><b>Snap</b><select id="ms">${[['1/4',.25],['1/2',.5],['1 beat',1],['2 beats',2]].map(s=>`<option value="${s[1]}" ${s[1]===snap?'selected':''}>${s[0]}</option>`).join('')}</select><span class="sep"></span><button id="mfo">Load sound folder</button><input type="file" id="mfof" webkitdirectory multiple class="hide"><button id="mc">Clear notes</button><small style="color:var(--m)">Click to add · drag to move/resize · arrow keys move the selected note (Shift = octave) · Delete removes · right-click deletes</small>`;
  $('#mi').onchange=e=>{inst=e.target.value;e.target.blur();ensure(inst);leg()};leg();
- $('#mapp').onclick=()=>{if(!selN||ro)return toast('Select a note first');selN.i=inst;ensure(inst);leg();drawRoll();drawTL()};$('#mbp').onchange=e=>setBpm(+e.target.value);$('#mbr').oninput=e=>setBpm(+e.target.value);$('#mtap').onclick=()=>{const n=performance.now();if(taps.length&&n-taps[taps.length-1]>2000)taps=[];taps.push(n);taps=taps.slice(-6);if(taps.length>1)setBpm(60000/((taps[taps.length-1]-taps[0])/(taps.length-1)))};$('#ms').onchange=e=>{snap=+e.target.value;e.target.blur()};$('#mf').onclick=()=>$('#mff').click();
+ $('#mapp').onclick=()=>{if(!selN||ro)return toast('Select a note first');selN.i=inst;ensure(inst);leg();drawRoll();drawTL();pushMeta(['midi'])};$('#mbp').onchange=e=>setBpm(+e.target.value);$('#mbr').oninput=e=>setBpm(+e.target.value);$('#mtap').onclick=()=>{const n=performance.now();if(taps.length&&n-taps[taps.length-1]>2000)taps=[];taps.push(n);taps=taps.slice(-6);if(taps.length>1)setBpm(60000/((taps[taps.length-1]-taps[0])/(taps.length-1)))};$('#ms').onchange=e=>{snap=+e.target.value;e.target.blur()};$('#mf').onclick=()=>$('#mff').click();
  $('#mff').onchange=async e=>{let last;for(const f of e.target.files){const n=f.name.replace(/\.sf2$/i,'');try{banks[n]=parseSF2(await f.arrayBuffer());last=n;toast('Loaded '+n)}catch(x){toast('Not a valid .sf2: '+f.name)}}if(last){inst=last;buildMusic()}};
  $('#mfo').onclick=()=>$('#mfof').click();$('#mfof').onchange=async e=>{for(const f of e.target.files){if(!/\.sf2$/i.test(f.name))continue;const n=f.name.replace(/\.sf2$/i,'');try{banks[n]=parseSF2(await f.arrayBuffer());toast('Loaded '+n)}catch(x){toast('Bad soundfont '+f.name)}}};buildBin();
- $('#mc').onclick=()=>{notes=[];drawRoll();drawTL()}}
+ $('#mc').onclick=()=>{notes=[];drawRoll();drawTL();pushMeta(['midi'])}}
 const gr=$('#gr'),keys=$('#keys');
 function drawRoll(){const nb=Math.max(32,Math.ceil(Math.max(0,...notes.map(n=>n.s+n.l))/4)*4+16),bw=48,w=nb*bw,h=(HI-LO)*RH;gr.width=w;gr.height=h;keys.width=KW;keys.height=h;const g=gr.getContext('2d'),k=keys.getContext('2d');
  for(let p=HI-1;p>=LO;p--){const y=(HI-1-p)*RH,bk=[1,3,6,8,10].includes(p%12);g.fillStyle=bk?'#0f0d1c':'#151228';g.fillRect(0,y,w,RH);k.fillStyle='#f4f2ff';k.fillRect(0,y,KW,RH);const bw=KW*.62;if(bk){k.fillStyle='#14112a';k.fillRect(0,y+1,bw,RH-2);k.fillStyle='#8d88b8';k.fillRect(bw,y+RH/2,KW-bw,1)}else if(p>LO&&![0,5].includes(p%12)===false){k.fillStyle='#8d88b8';k.fillRect(0,y+RH-1,KW,1)}if(p%12===0||p===LO){k.fillStyle='#1b1830';k.font='10px Space Grotesk';k.fillText(['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'][p%12]+(Math.floor(p/12)-1),KW-28,y+12)}}
@@ -361,16 +360,14 @@ gr.onmousedown=e=>{if(e.button||ro)return;const r=gr.getBoundingClientRect(),x=e
  if(n)selN=n,adopt(n),RD={n,m:x>(n.s+n.l)*48-8?'r':'m',o:b-n.s};else{n={p,s:Math.floor(b/snap)*snap,l:lastLen,i:inst};notes.push(n);selN=n;RD={n,m:'r',o:0};ensure(inst).then(()=>playNote(inst,p,actx().currentTime,.5))}drawRoll()};
 addEventListener('mousemove',e=>{if(!RD)return;const r=gr.getBoundingClientRect(),b=(e.clientX-r.left)/48,n=RD.n;
  if(RD.m==='r')n.l=Math.max(snap,Math.round((b-n.s)/snap)*snap);else{n.s=Math.max(0,Math.round((b-RD.o)/snap)*snap);n.p=Math.max(LO,Math.min(HI-1,HI-1-Math.floor((e.clientY-r.top)/RH)))}drawRoll()});
-addEventListener('mouseup',()=>{if(RD){lastLen=RD.n.l;RD=null;drawTL()}});
-gr.oncontextmenu=e=>{e.preventDefault();if(ro)return;const b=e.offsetX/48,p=HI-1-Math.floor(e.offsetY/RH),i=notes.findIndex(n=>n.p===p&&b>=n.s&&b<=n.s+n.l);if(i>=0){if(notes[i]===selN)selN=null;notes.splice(i,1);drawRoll();drawTL()}};
+addEventListener('mouseup',()=>{if(RD){lastLen=RD.n.l;RD=null;drawTL();pushMeta(['midi'])}});
+gr.oncontextmenu=e=>{e.preventDefault();if(ro)return;const b=e.offsetX/48,p=HI-1-Math.floor(e.offsetY/RH),i=notes.findIndex(n=>n.p===p&&b>=n.s&&b<=n.s+n.l);if(i>=0){if(notes[i]===selN)selN=null;notes.splice(i,1);drawRoll();drawTL();pushMeta(['midi'])}};
 $('#ps').addEventListener('click',e=>{if(e.target===gr&&e.offsetY<12){pause();setT(e.offsetX/48*60/bpm)}});
 
 /* ---------- MEDIA / AUDIO EDITING ---------- */
-async function loadMedia(){try{const ms=await getDocs(collection(db,'projects',P.id,'media')),g={};ms.docs.forEach(d=>{const v=d.data();(g[v.id]=g[v.id]||{name:v.name,p:[]}).p[v.k]=v.data});
- for(const id in g){const raw=unb64(g[id].p.join(''));media.push({id,name:g[id].name,buf:await actx().decodeAudioData(raw.slice(0)),raw,saved:1,n:g[id].p.length})}
- clips=(P.clips||[]).map(c=>{const m=media.find(x=>x.id===c.mid);return m&&{...c,m,name:m.name,buf:m.buf}}).filter(Boolean)}catch(e){console.warn(e)}}
-async function addMedia(fl){for(const f of fl){const raw=await f.arrayBuffer();try{media.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:f.name,buf:await actx().decodeAudioData(raw.slice(0)),raw,saved:0})}catch(e){toast("Can't decode "+f.name)}}buildBin()}
-function place(m){const c={m,name:m.name,buf:m.buf,mid:m.id,s:T,in:0,out:m.buf.duration,gain:1,fi:0,fo:0};clips.push(c);selC=c;buildBin();drawTL()}
+async function loadMedia(){try{await syncMedia()}catch(e){console.warn(e)}}
+async function addMedia(fl){for(const f of fl){const raw=await f.arrayBuffer();try{media.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:f.name,buf:await actx().decodeAudioData(raw.slice(0)),raw,saved:0})}catch(e){toast("Can't decode "+f.name)}}buildBin();pushMeta(['media'])}
+function place(m){const c={m,name:m.name,buf:m.buf,mid:m.id,s:T,in:0,out:m.buf.duration,gain:1,fi:0,fo:0};clips.push(c);selC=c;buildBin();drawTL();pushMeta(['clips','media'])}
 function stopPv(){if(pv){const s=pv.s;pv=null;s.onended=null;try{s.stop()}catch(e){}}}
 function buildBin(){const el=$('#mbin');if(!el)return;const c=selC;
  el.innerHTML=`<b>Media</b><button id="ma" class="pr">＋ Add audio (mp3, wav…)</button><input type="file" id="maf" accept="audio/*" multiple class="hide">`+(media.map((m,i)=>`<div class="card" style="padding:10px"><small>${esc(m.name)} · ${m.buf.duration.toFixed(1)}s</small><div class="row"><button data-mp="${i}">${pv&&pv.i===i?'■ Stop':'▶ Preview (5s)'}</button><button data-mt="${i}">To timeline</button><button data-md="${i}">✕</button></div></div>`).join('')||'<small style="color:var(--m)">Add audio files, then put them on the timeline at the playhead.</small>')
@@ -378,12 +375,12 @@ function buildBin(){const el=$('#mbin');if(!el)return;const c=selC;
  $('#ma').onclick=()=>$('#maf').click();$('#maf').onchange=e=>addMedia(e.target.files);
  $$('[data-mp]').forEach(b=>b.onclick=()=>{const i=+b.dataset.mp,was=pv&&pv.i===i;stopPv();if(!was){const m=media[i],a=actx(),s=a.createBufferSource();s.buffer=m.buf;s.connect(master);s.onended=()=>{if(pv&&pv.s===s){pv=null;buildBin()}};s.start(0,0,Math.min(5,m.buf.duration));pv={s,i}}buildBin()});
  $$('[data-mt]').forEach(b=>b.onclick=()=>place(media[+b.dataset.mt]));
- $$('[data-md]').forEach(b=>b.onclick=()=>{stopPv();const m=media[+b.dataset.md];media=media.filter(x=>x!==m);clips=clips.filter(x=>x.m!==m);if(selC&&selC.m===m)selC=null;for(let k=0;k<(m.n||0);k++)deleteDoc(doc(db,'projects',P.id,'media',m.id+'_'+k)).catch(()=>{});buildBin();drawTL()});
- $$('[data-cp]').forEach(i=>i.onchange=()=>{const k=i.dataset.cp;c[k]=Math.max(+i.min,Math.min(+i.max,+i.value||0));if(c.out<=c.in+.05){if(k==='in')c.in=c.out-.05;else c.out=c.in+.05}buildBin();drawTL()});
+ $$('[data-md]').forEach(b=>b.onclick=()=>{stopPv();const m=media[+b.dataset.md];media=media.filter(x=>x!==m);clips=clips.filter(x=>x.m!==m);if(selC&&selC.m===m)selC=null;for(let k=0;k<(m.n||0);k++)deleteDoc(doc(db,'projects',P.id,'media',m.id+'_'+k)).catch(()=>{});buildBin();drawTL();pushMeta(['clips','media'])});
+ $$('[data-cp]').forEach(i=>i.onchange=()=>{const k=i.dataset.cp;c[k]=Math.max(+i.min,Math.min(+i.max,+i.value||0));if(c.out<=c.in+.05){if(k==='in')c.in=c.out-.05;else c.out=c.in+.05}buildBin();drawTL();pushMeta(['clips'])});
  if(c){$('#cs').onclick=()=>clipOp(0);$('#cd').onclick=()=>clipOp(1);$('#cx').onclick=()=>clipOp(2)}}
 function clipOp(k){const c=selC;if(!c)return;
  if(k===0){const len=c.out-c.in;if(T>c.s+.02&&T<c.s+len-.02){const t=T-c.s+c.in,n={...c,s:T,in:t,fi:0};c.out=t;c.fo=0;clips.push(n);selC=n}else toast('Put the playhead inside the clip first')}
- else if(k===1){const n={...c,s:c.s+(c.out-c.in)};clips.push(n);selC=n}else{clips=clips.filter(x=>x!==c);selC=null}buildBin();drawTL()}
+ else if(k===1){const n={...c,s:c.s+(c.out-c.in)};clips.push(n);selC=n}else{clips=clips.filter(x=>x!==c);selC=null}buildBin();drawTL();pushMeta(['clips'])}
 function cmenu(e,items,fn){const m=$('#cm');m.classList.remove('hide');m.style.left=e.clientX+'px';m.style.top=e.clientY-120+'px';m.innerHTML=items.map(t=>`<div>${t}</div>`).join('');[...m.children].forEach((d,k)=>d.onclick=()=>{m.classList.add('hide');fn(k)})}
 
 /* ---------- NOTEPAD ---------- */
@@ -391,7 +388,7 @@ const nb=$('#nb'),nw=$('#nw'),ng=$('#ng');let NP={x:0,y:0,z:1,bg:'#0e0c1a'},nToo
 const NC=['#fde68a','#a7f3d0','#bfdbfe','#fbcfe8','#ddd6fe'],NT=[['move','✋ Move'],['note','🗒 Note'],['text','T Text'],['pen','✎ Pen'],['arrow','➜ Arrow'],['paint','🎨 Recolor'],['erase','⌫ Erase']],CUR={move:'grab',note:'copy',text:'text',pen:'crosshair',arrow:'crosshair',paint:'pointer',erase:'pointer'};
 $('#nt').innerHTML=NT.map(t=>`<button data-n="${t[0]}" class="${t[0]==='move'?'on':''}">${t[1]}</button>`).join('')+`<span class="sep"></span><label>Ink <input type="color" id="ncol" value="${ink}" style="width:34px;padding:1px"></label><label>Size <input type="range" id="nsz" min="1" max="20" value="${nwid}" style="width:70px"></label><label>Board <input type="color" id="nbgc" value="${NP.bg}" style="width:34px;padding:1px"></label><span class="sep"></span><label>Notes</label>`+NC.map(c=>`<button class="sw" data-nc="${c}" style="background:${c};width:24px;height:24px"></button>`).join('');
 $$('[data-n]').forEach(b=>b.onclick=()=>{nTool=b.dataset.n;nb.style.cursor=CUR[nTool];$$('[data-n]').forEach(x=>x.classList.toggle('on',x===b))});$$('[data-nc]').forEach(b=>b.onclick=()=>nc=b.dataset.nc);
-$('#ncol').oninput=e=>ink=e.target.value;$('#nsz').oninput=e=>nwid=+e.target.value;$('#nbgc').oninput=e=>setBg(e.target.value);
+$('#ncol').oninput=e=>ink=e.target.value;$('#nsz').oninput=e=>nwid=+e.target.value;$('#nbgc').oninput=e=>{setBg(e.target.value);pushMeta(['notepad'])};
 function setBg(c){NP.bg=c;nb.style.backgroundColor=c;const l=[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)),lum=(l[0]*.3+l[1]*.59+l[2]*.11)/255;nb.style.setProperty('--gl',lum<.5?'rgba(255,255,255,.07)':'rgba(0,0,0,.12)');const e=$('#nbgc');if(e)e.value=c}
 const nxf=()=>{nw.style.transform=`translate(${NP.x}px,${NP.y}px) scale(${NP.z})`;nb.style.backgroundSize=`${40*NP.z}px ${40*NP.z}px`;nb.style.backgroundPosition=`${NP.x}px ${NP.y}px`};
 const nwp=e=>{const r=nb.getBoundingClientRect();return[(e.clientX-r.left-NP.x)/NP.z,(e.clientY-r.top-NP.y)/NP.z]};
@@ -423,6 +420,53 @@ nb.ondblclick=e=>{if(e.target===nb||e.target===nw){const p=nwp(e);addNote(p[0],p
 nb.addEventListener('focusout',e=>{const d=e.target.closest&&e.target.closest('.sn.tx');if(d&&!d.innerText.trim())d.remove()});
 const serNotes=()=>JSON.stringify({n:[...nw.querySelectorAll('.sn')].map(d=>({x:parseFloat(d.style.left),y:parseFloat(d.style.top),c:d.dataset.c,tx:d.classList.contains('tx'),col:d.style.color,fs:parseFloat(d.style.fontSize)||0,w:d.style.width,h:d.style.height,t:d.querySelector('.sb').innerText})),s:ng.innerHTML,bg:NP.bg});
 function loadNotes(j){nw.querySelectorAll('.sn').forEach(n=>n.remove());ng.innerHTML='';NP={x:0,y:0,z:1,bg:'#0e0c1a'};nxf();setBg(NP.bg);try{const o=JSON.parse(j);o.n.forEach(n=>{if(n.tx)addText(n.x,n.y,n.t,n.col||ink,n.fs||22);else{const d=addNote(n.x,n.y,n.t,n.c);if(n.w)d.style.width=n.w;if(n.h)d.style.height=n.h}});ng.innerHTML=o.s;if(o.bg)setBg(o.bg)}catch(e){}}
+
+/* ---------- LIVE SYNC (project doc) ---------- */
+const SID=Math.random().toString(36).slice(2,10);
+let unsubP,seen={},pushed={},sent={},mdirty=new Set(),metaT,held=false,pendR=null,pendNote=null,stT;
+const ser=v=>JSON.stringify(v===undefined?null:v);
+const G={title:()=>P.title,fps:()=>P.fps,budget:()=>!!P.budget,published:()=>!!P.published,bpm:()=>bpm,midi:()=>notes.map(n=>({p:n.p,s:n.s,l:n.l,i:n.i})),nf:()=>frames.length,notepad:()=>serNotes(),clips:()=>clips.map(c=>({mid:c.mid,s:c.s,in:c.in,out:c.out,gain:c.gain,fi:c.fi,fo:c.fo})),media:()=>media.map(m=>({id:m.id,name:m.name}))};
+const ALL=Object.keys(G),RK=[...ALL,'members','memberNames'];
+const LBL={title:'settings',fps:'settings',budget:'settings',published:'settings',bpm:'music',midi:'music',notepad:'notes',clips:'audio',media:'audio',nf:'frames',members:'collaborators',memberNames:'collaborators'};
+const pushMeta=k=>{if(!P||ro)return;k.forEach(x=>mdirty.add(x));clearTimeout(metaT);metaT=setTimeout(()=>flushMeta(),500)};
+async function uploadMedia(){for(const m of media)if(!m.saved){const s=b64(m.raw),n=Math.ceil(s.length/700000);for(let k=0;k<n;k++)await setDoc(doc(db,'projects',P.id,'media',m.id+'_'+k),{id:m.id,k,name:m.name,data:s.slice(k*700000,(k+1)*700000)});m.saved=1;m.n=n}}
+async function flushMeta(force){if(!P||ro||!mdirty.size)return;const o={byName:me.name,updated:serverTimestamp()},ks=[...mdirty];mdirty.clear();
+ try{if(ks.includes('media')||ks.includes('clips'))await uploadMedia();
+  const out=[];for(const k of ks){if(!G[k])continue;const v=G[k](),t=ser(v);if(!force&&t===pushed[k])continue;o[k]=v;out.push([k,t])}
+  if(!out.length)return;
+  out.forEach(([k,t])=>{seen[k]=pushed[k]=t;(sent[k]=sent[k]||new Set()).add(t);if(sent[k].size>6)sent[k].delete(sent[k].values().next().value)});
+  await updateDoc(doc(db,'projects',P.id),o);$('#stat').textContent='Synced '+new Date().toLocaleTimeString()}
+ catch(e){ks.forEach(k=>mdirty.add(k));if(force)throw e;$('#stat').textContent='Sync failed – retrying';clearTimeout(metaT);metaT=setTimeout(()=>flushMeta(),4000)}}
+async function syncMedia(){const want=(P.media||[]).map(m=>m.id);media=media.filter(m=>want.includes(m.id)||!m.saved);
+ const need=want.filter(id=>!media.some(m=>m.id===id));
+ if(need.length){const ms=await getDocs(collection(db,'projects',P.id,'media')),g={};ms.docs.forEach(d=>{const v=d.data();if(!need.includes(v.id))return;(g[v.id]=g[v.id]||{name:v.name,p:[]}).p[v.k]=v.data});
+  for(const id in g){try{const raw=unb64(g[id].p.join(''));media.push({id,name:g[id].name,buf:await actx().decodeAudioData(raw.slice(0)),raw,saved:1,n:g[id].p.length})}catch(e){console.warn(e)}}}
+ const si=clips.indexOf(selC);clips=(P.clips||[]).map(c=>{const m=media.find(x=>x.id===c.mid);return m&&{...c,m,name:m.name,buf:m.buf}}).filter(Boolean);selC=si>=0?clips[si]||null:null}
+function applyNotepad(j){const k={x:NP.x,y:NP.y,z:NP.z};loadNotes(j);NP.x=k.x;NP.y=k.y;NP.z=k.z;nxf();pushed.notepad=ser(serNotes());pendNote=null}
+function onMeta(d){if(!P)return;if(held){pendR=d;return}
+ const ch=RK.filter(k=>{const t=ser(d[k]);return t!==seen[k]&&!(sent[k]&&sent[k].has(t))});RK.forEach(k=>seen[k]=ser(d[k]));
+ if(!ch.length)return;ch.forEach(k=>mdirty.delete(k));
+ if(ch.includes('members')||ch.includes('memberNames')){P.members=d.members||[];P.memberNames=d.memberNames||[];
+  if(!ro&&!P.members.includes(me.uid)){toast('You were removed from this project');pause();unsub&&unsub();unsubP&&unsubP();board();return}}
+ if(ch.includes('title')){P.title=d.title;$('#pt').textContent=P.title}
+ ['fps','budget','published'].forEach(k=>{if(ch.includes(k))P[k]=d[k]});
+ ch.forEach(k=>{if(['title','fps','budget','published','bpm','nf'].includes(k))pushed[k]=seen[k]});
+ if(ch.includes('bpm')){bpm=d.bpm||120;['#mbp','#mbr','#s4'].forEach(q=>{const e=$(q);if(e)e.value=bpm})}
+ if(ch.includes('midi')){const si=notes.indexOf(selN);notes=(d.midi||[]).map(n=>({...n}));selN=si>=0?notes[si]||null:null;pushed.midi=ser(G.midi());if(studio==='music')leg()}
+ if(ch.includes('notepad')){if(document.activeElement&&nw.contains(document.activeElement))pendNote=d.notepad;else applyNotepad(d.notepad)}
+ if(ch.includes('nf')&&d.nf>0&&d.nf<frames.length){frames.length=d.nf;cf=Math.min(cf,d.nf-1);P.nf=d.nf;tlSel=-1;render()}
+ if(ch.includes('clips')||ch.includes('media')){P.clips=d.clips||[];P.media=d.media||[];syncMedia().then(()=>{pushed.clips=ser(G.clips());pushed.media=ser(G.media());buildBin();drawTL()}).catch(e=>console.warn(e))}
+ drawRoll();drawTL();
+ const pp=$('#pop');if(!pp.classList.contains('hide')&&!pp.contains(document.activeElement)){$('#sett').click();$('#sett').click()}
+ $('#stat').textContent=`${d.byName||'Collaborator'} updated ${[...new Set(ch.map(k=>LBL[k]))].join(', ')}`;clearTimeout(stT);stT=setTimeout(()=>$('#stat').textContent='',4000)}
+function initSync(raw){seen={};sent={};pushed={};mdirty.clear();RK.forEach(k=>seen[k]=ser(raw[k]));ALL.forEach(k=>pushed[k]=ser(G[k]()));
+ unsubP&&unsubP();unsubP=onSnapshot(doc(db,'projects',P.id),sn=>{if(sn.exists())onMeta(sn.data())})}
+addEventListener('pointerdown',()=>held=true,true);
+const rel=()=>{held=false;if(pendR){const d=pendR;pendR=null;setTimeout(()=>onMeta(d),60)}};
+addEventListener('pointerup',rel,true);addEventListener('pointercancel',rel,true);addEventListener('blur',rel);
+const pushN=()=>pushMeta(['notepad']);
+nb.addEventListener('input',pushN);nb.addEventListener('pointerup',()=>setTimeout(pushN,50));
+nb.addEventListener('focusout',()=>{setTimeout(()=>{if(pendNote!=null&&!nw.contains(document.activeElement))applyNotepad(pendNote)},0);pushN()});
 addEventListener('resize',()=>P&&drawTL());
 </script>
 </body></html>
