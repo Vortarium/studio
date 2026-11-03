@@ -75,7 +75,7 @@ button:has(svg){display:inline-flex;align-items:center;justify-content:center;ga
 <div id="e" class="screen hide">
 <div id="hd"><button id="bk">←</button><b id="pt" class="logo" style="letter-spacing:.15em"></b>
 <nav><button data-s="anim" class="on">Animate</button><button data-s="music">Music</button><button data-s="note">Notes</button></nav>
-<span id="stat"></span><span id="pres"></span><button id="ly">Layers</button><button id="sett">⚙ Settings</button><button id="sv" class="pr">Save</button></div>
+<span id="stat"></span><span id="pres"></span><button id="pv1" title="Watch the whole project">▶ Preview</button><button id="dl" title="Download project file">⬇ Download</button><button id="ul" title="Upload project file">⬆ Upload</button><input type="file" id="ulf" accept=".json" class="hide"><button id="pb" title="Publish (cannot be edited afterwards)">🚀 Publish</button><button id="ly">Layers</button><button id="sett">⚙ Settings</button><button id="sv" class="pr">Save</button></div>
 <div id="ptools"></div>
 <main><div id="st"><div id="vw"><canvas id="view" width="960" height="540"></canvas><canvas id="ov" width="960" height="540"></canvas></div></div>
 <div id="sM" class="hide"><div id="mt"></div><div id="mrow"><div id="mbin"></div><div id="ps"><div id="pi"><canvas id="keys"></canvas><div id="gw"><canvas id="gr"></canvas><div id="prph"></div></div></div></div></div></div>
@@ -83,7 +83,7 @@ button:has(svg){display:inline-flex;align-items:center;justify-content:center;ga
 <footer id="tl"><div id="tb"><button id="t0">⏮</button><button id="t1">⏪</button><button id="tp" class="pr">▶</button><button id="t2">⏩</button><button id="t3">⏭</button><span id="tm">0.00s</span><span class="sep"></span><button id="fa">＋ Frame</button><button id="fd">⧉ Duplicate</button><label style="color:var(--m)">Zoom <input id="zm" type="range" min="6" max="80" value="24"></label><button id="lp1">Loop</button></div>
 <div id="tw"><div id="ti"><canvas id="tc"></canvas><div id="ph"></div></div></div></footer>
 <div id="pop" class="glass hide" style="padding:16px"></div><div id="lp" class="glass hide" style="padding:16px;width:210px"></div></div>
-<div id="cm" class="hide"></div><div id="toast" class="hide"></div>
+<div id="cm" class="hide"></div><div id="pl" class="hide" style="position:fixed;inset:0;z-index:100;background:#000;display:flex;flex-direction:column"><div style="flex:1;display:flex;align-items:center;justify-content:center;min-height:0"><canvas id="plc" width="960" height="540" style="max-width:100%;max-height:100%;aspect-ratio:16/9;background:#fff"></canvas></div><div class="row" style="padding:10px 16px;background:#0a0912"><button id="plr">⏪ 5s</button><button id="plp" class="pr">⏸</button><button id="plf">5s ⏩</button><input id="pls" type="range" min="0" max="1000" value="0" style="flex:1"><span id="plt">0:00</span><button id="plz">⛶</button><button id="plx">✕</button></div></div><div id="toast" class="hide"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
@@ -111,6 +111,7 @@ eraser:S_('<path d="M4.6 14.4l8.8-8.8a2 2 0 012.8 0l3.2 3.2a2 2 0 010 2.8L11 20H
 bucket:S_('<path d="M4.5 12l6.5-7.5 7.5 7.5-6 6a2 2 0 01-2.8 0z"/><path d="M4.5 12h14"/><path d="M20.5 14.5c1.2 1.6 1.8 2.5 1.8 3.4a1.8 1.8 0 01-3.6 0c0-.9.6-1.8 1.8-3.4z" fill="currentColor"/>'),
 pick:S_('<path d="M20.4 3.6a2.1 2.1 0 00-3 0L14 7l3 3 3.4-3.4a2.1 2.1 0 000-3z"/><path d="M13 8l-9 9v3h3l9-9"/><path d="M11 10l3 3"/>'),
 line:S_('<path d="M5 19L19 5"/><circle cx="5" cy="19" r="1.7" fill="currentColor"/><circle cx="19" cy="5" r="1.7" fill="currentColor"/>'),
+bend:S_('<path d="M4 19Q12 3 20 19"/><circle cx="12" cy="11" r="1.7" fill="currentColor"/>'),
 rect:S_('<rect x="3.5" y="6" width="17" height="12" rx="1"/>'),
 ell:S_('<ellipse cx="12" cy="12" rx="9" ry="6.5"/>'),
 tri:S_('<path d="M12 4l9 16H3z"/>'),
@@ -153,14 +154,14 @@ $('#lo').onclick=()=>signOut(auth);
 
 /* ---------- BOARD ---------- */
 $$('.bh nav button').forEach(b=>b.onclick=()=>{$$('.bh nav button').forEach(x=>x.classList.toggle('on',x===b));['mine','comm','inb'].forEach(i=>$('#'+i).classList.toggle('hide',i!==b.dataset.t))});
-const card=(d,own)=>{const p=d.data();return `<div class="card"><h3>${esc(p.title)}</h3><p>${esc((p.memberNames||[]).join(', '))}</p><small>${p.fps} fps · ${p.budget?'budget':'quality'}${p.published?' · published':''}</small><button data-o="${d.id}" data-r="${own?'':1}">${own?'Open':'View'}</button></div>`};
+const card=(d,own)=>{const p=d.data();return `<div class="card">${p.thumb?`<img src="${p.thumb}" data-o="${d.id}" data-r="${own?'':1}" style="width:100%;border-radius:10px;cursor:pointer">`:''}<h3>${esc(p.title)}</h3><p>${esc((p.memberNames||[]).join(', '))}</p><small>${p.fps} fps · ${p.budget?'budget':'quality'}${p.published?' · published':''}</small><button data-o="${d.id}" data-r="${own?'':1}">${own?'Open':'View'}</button></div>`};
 async function board(){show('#b');$('#hi').textContent=me.name;
  const s=await getDocs(query(collection(db,'projects'),where('members','array-contains',me.uid)));
  $('#mine').innerHTML='<div class="card new" id="cr">＋<small>Create</small></div>'+s.docs.map(d=>card(d,1)).join('');$('#cr').onclick=()=>{W_={t:'',c:[],fps:24,bud:false,step:1};show('#w');wz()};
  const c=await getDocs(query(collection(db,'projects'),where('published','==',true)));$('#comm').innerHTML=c.docs.map(d=>card(d,0)).join('')||'<p style="color:var(--m)">Nothing published yet.</p>';
  const i=await getDocs(query(collection(db,'invites'),where('to','==',me.uid)));$('#ib').textContent=i.size?`(${i.size})`:'';
  $('#inb').innerHTML=i.docs.map(d=>{const v=d.data();return `<div class="card"><h3>${esc(v.title)}</h3><p>Invited by ${esc(v.from)}</p><button data-a="${d.id}">Accept</button><button data-x="${d.id}">Decline</button></div>`}).join('')||'<p style="color:var(--m)">Inbox empty.</p>';
- $$('[data-o]').forEach(b=>b.onclick=()=>openP(b.dataset.o,!!b.dataset.r));
+ $$('[data-o]').forEach(b=>b.onclick=()=>openP(b.dataset.o,!!b.dataset.r,!!b.dataset.r));
  $$('[data-a]').forEach(b=>b.onclick=async()=>{const id=b.dataset.a,v=(await getDoc(doc(db,'invites',id))).data();await updateDoc(doc(db,'projects',v.pid),{members:arrayUnion(me.uid),memberNames:arrayUnion(me.name)});await deleteDoc(doc(db,'invites',id));board()});
  $$('[data-x]').forEach(b=>b.onclick=async()=>{await deleteDoc(doc(db,'invites',b.dataset.x));board()})}
 async function invite(pid,name,title){const s=await getDocs(query(collection(db,'users'),where('lname','==',name.trim().toLowerCase())));if(s.empty){toast('No user named '+name);return false}
@@ -182,7 +183,7 @@ function wz(){const el=$('#wc'),s=W_.step;
 const W=960,H=540,NL=4,LO=21,HI=109,RH=16,KW=72,INS=['Piano','Strings','Atmosphere','Choir','Flute','Guitar'];
 let P,ro=false,frames=[],cf=0,cl=0,vis=[1,1,1,1],tool='pen',color='#8b5cf6',size=6,alpha=1,eM='pixel',fillOn=false,Z=1,pan=[0,0],space=false,D=null,SEL=null;
 let on={n:2,a:.3,d:.5},undo=[],redo=[],dirty=new Set(),dt,notes=[],clips=[],bpm=120,inst='Piano',snap=.25,lastLen=1,T=0,playing=false,looping=false,T0,t0,srcs=[],A,master,ZOOM=24,drop=-1,unsub,studio='anim',recent=JSON.parse(localStorage.tsRecent||'[]');
-let media=[],selC=null,selN=null,muted=new Set(),pv=null;
+let media=[],selC=null,selN=null,muted=new Set(),pv=null,inbox={},pendMeta=null,collab=false,BEND=null,BC=null,REC=null,recN=1;
 const b64=ab=>{let s='',u=new Uint8Array(ab);for(let i=0;i<u.length;i+=32768)s+=String.fromCharCode.apply(null,u.subarray(i,i+32768));return btoa(s)};
 const unb64=s=>{const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u.buffer};
 const mk=()=>{const c=document.createElement('canvas');c.width=W;c.height=H;return c};
@@ -190,21 +191,28 @@ const newF=()=>({L:Array.from({length:NL},mk)});
 const view=$('#view'),ov=$('#ov'),st=$('#st'),vw=$('#vw');
 const span=()=>P.budget?2:1,dur=()=>Math.max(frames.length*span()/P.fps,...notes.map(n=>(n.s+n.l)*60/bpm),...clips.map(c=>c.s+c.out-c.in),0);
 
-async function openP(id,r){const d=await getDoc(doc(db,'projects',id));P={id,...d.data()};ro=r||!P.members.includes(me.uid);bpm=P.bpm||120;notes=P.midi||[];media=[];clips=[];selC=null;
+async function openP(id,r,vm){const d=await getDoc(doc(db,'projects',id));P={id,...d.data()};ro=r||!P.members.includes(me.uid)||!!P.published;bpm=P.bpm||120;notes=P.midi||[];media=[];clips=[];selC=null;
  const fs=await getDocs(collection(db,'projects',id,'frames'));frames=[];for(const x of fs.docs.map(v=>v.data()))frames[x.i]=await fromDoc(x);
  for(let i=0;i<Math.max(frames.length,1);i++)frames[i]=frames[i]||newF();cf=0;cl=0;T=0;undo=[];redo=[];dirty.clear();P.nf=frames.length;await loadMedia();
+ if(vm){ro=true;show('#e');setStudio('anim');fit();render();drawTL();openPlayer(true);return}
  show('#e');$('#pt').textContent=P.title;setStudio('anim');loadNotes(P.notepad);fit();buildTools();render();drawTL();drawRoll();ensure('Piano');initSync(d.data());
- let first=true;unsub&&unsub();unsub=onSnapshot(collection(db,'projects',id,'frames'),s=>{if(first){first=false;return}s.docChanges().forEach(async c=>{const v=c.doc.data();if(c.type==='removed'||c.doc.metadata.hasPendingWrites||v.by===SID||(D&&v.i===cf)||(SEL&&frames[v.i]===SEL.f))return;frames[v.i]=await fromDoc(v);$('#stat').textContent=`${v.byName||'Collaborator'} is editing frame ${v.i+1}`;clearTimeout(unsub.t);unsub.t=setTimeout(()=>$('#stat').textContent='',4000);for(let i=0;i<frames.length;i++)frames[i]=frames[i]||newF();render();drawTL()})})}
+ let mx=new Date(0);fs.docs.forEach(x=>{const q=x.data().ts;if(q&&q.toMillis()>mx.getTime())mx=q.toDate()});attachFr(mx)}
+function attachFr(mx){unsub&&unsub();unsub=null;if(ro||!P||P.members.length<2)return;unsub=onSnapshot(query(collection(db,'projects',P.id,'frames'),where('ts','>',mx)),s=>s.docChanges().forEach(c=>{const v=c.doc.data();if(c.type==='removed'||c.doc.metadata.hasPendingWrites||v.by===SID)return;inbox[v.i]=v}))}
+async function applyInbox(){const ib=inbox;inbox={};let n='';for(const k in ib){const v=ib[k],i=v.i;if((D&&i===cf)||(SEL&&frames[i]===SEL.f)||(me.uid===P.owner&&dirty.has(i))){if(!(me.uid===P.owner&&dirty.has(i)))inbox[i]=v;continue}frames[i]=await fromDoc(v);n=v.byName||'Collaborator';if(i>=P.nf)P.nf=i+1}if(!n)return;for(let i=0;i<frames.length;i++)frames[i]=frames[i]||newF();tlSel=-1;render();drawTL();$('#stat').textContent=n+' updated frames';clearTimeout(stT);stT=setTimeout(()=>$('#stat').textContent='',4000)}
 const fromDoc=async v=>{const f=newF();await Promise.all((v.l||[]).map((u,k)=>new Promise(r=>{if(!u)return r();const im=new Image();im.onload=()=>{f.L[k].getContext('2d').drawImage(im,0,0);r()};im.src=u})));return f};
 const blank=mk().toDataURL();
-const toDoc=(f,i)=>({i,by:SID,byName:me.name,l:f.L.map(c=>{const u=c.toDataURL();return u===blank?'':u})});
+const toDoc=(f,i)=>({i,ts:serverTimestamp(),by:SID,byName:me.name,l:f.L.map(c=>{const u=c.toDataURL();return u===blank?'':u})});
 async function saveAll(manual){if(!P||ro)return;commitSel();$('#stat').textContent='Saving…';try{
  ALL.forEach(k=>mdirty.add(k));await flushMeta(true);
- for(let i=0;i<frames.length;i++)await setDoc(doc(db,'projects',P.id,'frames',String(i).padStart(4,'0')),toDoc(frames[i],i));
+ {const ds=[...dirty];await Promise.all(ds.map(i=>frames[i]&&setDoc(doc(db,'projects',P.id,'frames',String(i).padStart(4,'0')),toDoc(frames[i],i))))}
  for(let i=frames.length;i<P.nf;i++)deleteDoc(doc(db,'projects',P.id,'frames',String(i).padStart(4,'0'))).catch(()=>{});P.nf=frames.length;dirty.clear();
  $('#stat').textContent='Saved '+new Date().toLocaleTimeString();manual&&toast('Project saved')}catch(e){$('#stat').textContent='Save failed';toast(e.message)}}
-async function flush(){if(ro)return;for(const i of dirty)if(frames[i])await setDoc(doc(db,'projects',P.id,'frames',String(i).padStart(4,'0')),toDoc(frames[i],i)).catch(()=>{});dirty.clear();for(let i=frames.length;i<P.nf;i++)deleteDoc(doc(db,'projects',P.id,'frames',String(i).padStart(4,'0'))).catch(()=>{});P.nf=frames.length;pushMeta(['nf'])}
+const flush=()=>{};
+async function doFlush(){if(ro)return;const ds=[...dirty];dirty.clear();await Promise.all(ds.map(i=>frames[i]&&setDoc(doc(db,'projects',P.id,'frames',String(i).padStart(4,'0')),toDoc(frames[i],i)).catch(()=>dirty.add(i))));for(let i=frames.length;i<P.nf;i++)deleteDoc(doc(db,'projects',P.id,'frames',String(i).padStart(4,'0'))).catch(()=>{});P.nf=frames.length;pushMeta(['nf'])}
 setInterval(()=>{if(!$('#e').classList.contains('hide'))saveAll(false)},300000);
+const isCollab=()=>P&&!ro&&P.members.length>1&&Object.entries(PRES).some(([u,v])=>u!==me.uid&&v&&v.t&&Date.now()-(v.t.toMillis?v.t.toMillis():Date.now())<75000);
+setInterval(async()=>{if(!P||ro||$('#e').classList.contains('hide'))return;collab=isCollab();if(!collab)return;try{await doFlush();await flushMeta();if(pendMeta){const d=pendMeta;pendMeta=null;onMeta(d)}await applyInbox()}catch(e){}},4000);
+addEventListener('beforeunload',e=>{if(P&&!ro&&dirty.size&&!collab){e.preventDefault();e.returnValue=''}});
 $('#sv').onclick=()=>saveAll(true);$('#bk').onclick=()=>{pause();unsub&&unsub();unsubP&&unsubP();stopPres();saveAll(false);board()};
 
 /* ---------- STUDIO SWITCH ---------- */
@@ -212,8 +220,8 @@ function setStudio(s){studio=s;$$('#hd nav button').forEach(b=>b.classList.toggl
 $$('#hd nav button').forEach(b=>b.onclick=()=>setStudio(b.dataset.s));
 
 /* ---------- ANIMATION TOOLS ---------- */
-const TOOLS=[['pen','','Pen'],['pencil','','Pencil'],['marker','','Highlighter'],['cal','','Calligraphy'],['spray','','Spray paint'],['eraser','','Eraser'],['bucket','','Paint bucket'],['pick','','Eyedropper'],['line','','Line'],['rect','','Rectangle'],['ell','','Ellipse'],['tri','','Triangle'],['star','','Star'],['arrow','','Arrow'],['select','','Select & transform — click a stroke/shape, or drag a box'],['move','','Move whole layer'],['hand','','Pan view']];
-const SH=['line','rect','ell','tri','star','arrow'],PRE=['#000000','#ffffff','#ef4444','#f97316','#facc15','#22c55e','#22d3ee','#3b82f6','#8b5cf6','#f472b6','#92400e','#6b7280'];
+const TOOLS=[['pen','','Pen'],['pencil','','Pencil'],['marker','','Highlighter'],['cal','','Calligraphy'],['spray','','Spray paint'],['eraser','','Eraser'],['bucket','','Paint bucket'],['pick','','Eyedropper'],['line','','Line'],['bend','','Line bend — draw a line, then drag the middle node'],['rect','','Rectangle'],['ell','','Ellipse'],['tri','','Triangle'],['star','','Star'],['arrow','','Arrow'],['select','','Select & transform — click a stroke/shape, or drag a box'],['move','','Move whole layer'],['hand','','Pan view']];
+const SH=['line','bend','rect','ell','tri','star','arrow'],PRE=['#000000','#ffffff','#ef4444','#f97316','#facc15','#22c55e','#22d3ee','#3b82f6','#8b5cf6','#f472b6','#92400e','#6b7280'];
 function buildTools(){$('#ptools').innerHTML=TOOLS.map(t=>`<button data-k="${t[0]}" title="${t[2]}" class="ic ${t[0]===tool?'on':''}">${ICON[t[0]]}</button>`).join('')+`<span class="sep"></span><div class="rg"><span>Size<b id="szv">${size} px</b></span><input type="range" id="sz" min="1" max="80" value="${size}"></div><div class="rg"><span>Opacity<b id="alv">${Math.round(alpha*100)}%</b></span><input type="range" id="al" min="5" max="100" value="${Math.round(alpha*100)}"></div><select id="em"><option value="pixel">Erase: pixel</option><option value="stroke">Erase: stroke</option></select><label><input type="checkbox" id="fo"> fill</label><span class="sep"></span><input type="color" id="cp" value="${color}" style="width:34px;padding:1px">`+PRE.map(c=>`<button class="sw" data-c="${c}" style="background:${c}"></button>`).join('')+`<span class="sep"></span><span id="rc"></span><span class="sep"></span><button id="un" class="ic" title="Undo (Ctrl+Z)">${ICON.undo}</button><button id="re" class="ic" title="Redo (Ctrl+Y)">${ICON.redo}</button><button id="ft" class="ic" title="Fit view">${ICON.fit}</button>`;
  $$('[data-k]').forEach(b=>b.onclick=()=>{commitSel();tool=b.dataset.k;ov.style.cursor=tool==='select'?'default':'crosshair';if(tool==='select')toast('Click a stroke or shape to pick it up · drag a box to select an area · drag handles to scale/rotate · Delete removes · Enter drops it');$$('[data-k]').forEach(x=>x.classList.toggle('on',x===b))});
  $('#sz').oninput=e=>{size=+e.target.value;$('#szv').textContent=size+' px'};$('#al').oninput=e=>{alpha=e.target.value/100;$('#alv').textContent=e.target.value+'%'};$('#em').onchange=e=>eM=e.target.value;$('#fo').onchange=e=>fillOn=e.target.checked;
@@ -226,16 +234,16 @@ function fit(){Z=Math.min(st.clientWidth/W,st.clientHeight/H)*.92||1;pan=[(st.cl
 st.onwheel=e=>{e.preventDefault();const r=st.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,z=Math.min(8,Math.max(.1,Z*(e.deltaY<0?1.1:.9)));pan=[mx-(mx-pan[0])*z/Z,my-(my-pan[1])*z/Z];Z=z;xf()};
 const pt=e=>{const r=view.getBoundingClientRect();return[(e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height]};
 function render(){const x=view.getContext('2d');x.globalAlpha=1;x.fillStyle='#fff';x.fillRect(0,0,W,H);
- if(!playing)for(let k=on.n;k>=1;k--){const f=frames[cf-k];if(!f)continue;x.globalAlpha=on.a*Math.pow(on.d,k-1);f.L.forEach(c=>x.drawImage(c,0,0))}
+ if(!playing&&$('#pl').classList.contains('hide'))for(let k=on.n;k>=1;k--){const f=frames[cf-k];if(!f)continue;x.globalAlpha=on.a*Math.pow(on.d,k-1);f.L.forEach(c=>x.drawImage(c,0,0))}
  x.globalAlpha=1;frames[cf].L.forEach((c,i)=>{if(vis[i])x.drawImage(c,0,0);if(SEL&&SEL.f===frames[cf]&&SEL.l===i&&vis[i]){x.save();x.translate(SEL.cx,SEL.cy);x.rotate(SEL.r);x.scale(SEL.s,SEL.s);x.drawImage(SEL.c,-SEL.w/2,-SEL.h/2);x.restore()}})}
 const sty=g=>{g.globalCompositeOperation='source-over';g.strokeStyle=g.fillStyle=color;g.lineWidth=size;g.globalAlpha=alpha;g.lineCap=g.lineJoin='round'};
 function seg(g,a,b){sty(g);const[x0,y0]=a,[x1,y1]=b;
  if(tool==='eraser'){g.globalCompositeOperation='destination-out';g.globalAlpha=1}
  if(tool==='pen'||tool==='eraser'){g.beginPath();g.moveTo(x0,y0);g.lineTo(x1,y1);g.stroke()}
- else if(tool==='pencil'){g.globalAlpha=alpha*.5;g.lineWidth=Math.max(1,size*.4);for(let i=0;i<3;i++){g.beginPath();g.moveTo(x0+Math.random()*2-1,y0+Math.random()*2-1);g.lineTo(x1+Math.random()*2-1,y1+Math.random()*2-1);g.stroke()}}
- else if(tool==='marker'){g.globalAlpha=alpha*.22;g.lineWidth=size*2.5;g.lineCap='butt';g.beginPath();g.moveTo(x0,y0);g.lineTo(x1,y1);g.stroke()}
- else if(tool==='cal'){const n=Math.max(1,Math.hypot(x1-x0,y1-y0)|0);for(let i=0;i<=n;i++){const k=i/n;g.beginPath();g.ellipse(x0+(x1-x0)*k,y0+(y1-y0)*k,size,size*.25,-Math.PI/4,0,7);g.fill()}}
- else if(tool==='spray'){const n=Math.max(1,Math.hypot(x1-x0,y1-y0)/4|0);for(let k=0;k<=n;k++)for(let i=0;i<size;i++){const an=Math.random()*7,r=size*2*Math.sqrt(Math.random());g.fillRect(x1+Math.cos(an)*r,y1+Math.sin(an)*r,1.5,1.5)}}
+ else if(tool==='pencil'){g.globalAlpha=alpha*.55;g.lineWidth=Math.max(1,size*.5);const j=size*.25;for(let i=0;i<2;i++){g.beginPath();g.moveTo(x0+(Math.random()*2-1)*j,y0+(Math.random()*2-1)*j);g.lineTo(x1+(Math.random()*2-1)*j,y1+(Math.random()*2-1)*j);g.stroke()}}
+ else if(tool==='marker'){g.globalAlpha=alpha*.22;g.lineWidth=size;g.lineCap='butt';g.beginPath();g.moveTo(x0,y0);g.lineTo(x1,y1);g.stroke()}
+ else if(tool==='cal'){const n=Math.max(1,Math.hypot(x1-x0,y1-y0)|0);for(let i=0;i<=n;i++){const k=i/n;g.beginPath();g.ellipse(x0+(x1-x0)*k,y0+(y1-y0)*k,size/2,size/8,-Math.PI/4,0,7);g.fill()}}
+ else if(tool==='spray'){const n=Math.max(1,Math.hypot(x1-x0,y1-y0)/4|0);for(let k=0;k<=n;k++)for(let i=0;i<Math.ceil(size*.6);i++){const an=Math.random()*7,r=size/2*Math.sqrt(Math.random());g.fillRect(x1+Math.cos(an)*r,y1+Math.sin(an)*r,1.5,1.5)}}
  g.globalAlpha=1;g.globalCompositeOperation='source-over'}
 function shape(g,t,a,b,f){g.beginPath();const[x0,y0]=a,[x1,y1]=b;
  if(t==='line')g.moveTo(x0,y0),g.lineTo(x1,y1);
@@ -243,8 +251,9 @@ function shape(g,t,a,b,f){g.beginPath();const[x0,y0]=a,[x1,y1]=b;
  else if(t==='ell')g.ellipse((x0+x1)/2,(y0+y1)/2,Math.abs(x1-x0)/2,Math.abs(y1-y0)/2,0,0,7);
  else if(t==='tri')g.moveTo((x0+x1)/2,y0),g.lineTo(x1,y1),g.lineTo(x0,y1),g.closePath();
  else if(t==='star'){const cx=(x0+x1)/2,cy=(y0+y1)/2,R=Math.hypot(x1-x0,y1-y0)/2;for(let i=0;i<10;i++){const r=i%2?R*.45:R,an=-Math.PI/2+i*Math.PI/5;g[i?'lineTo':'moveTo'](cx+r*Math.cos(an),cy+r*Math.sin(an))}g.closePath()}
+ else if(t==='bend'){const c=BC||[(x0+x1)/2,(y0+y1)/2];g.moveTo(x0,y0);g.quadraticCurveTo(c[0],c[1],x1,y1)}
  else{const an=Math.atan2(y1-y0,x1-x0),hl=size*3+10;g.moveTo(x0,y0);g.lineTo(x1,y1);for(const s of[-.45,.45]){g.moveTo(x1,y1);g.lineTo(x1-hl*Math.cos(an+s),y1-hl*Math.sin(an+s))}}
- if(f&&t!=='line'&&t!=='arrow')g.fill();g.stroke()}
+ if(f&&t!=='line'&&t!=='arrow'&&t!=='bend')g.fill();g.stroke()}
 function fill(x,y,clear){if(x<0||y<0||x>=W||y>=H)return;const L=frames[cf].L[cl],g=L.getContext('2d');let src;
  if(clear)src=g.getImageData(0,0,W,H);else{const t=mk(),tg=t.getContext('2d');tg.fillStyle='#fff';tg.fillRect(0,0,W,H);frames[cf].L.forEach((c,i)=>vis[i]&&tg.drawImage(c,0,0));src=tg.getImageData(0,0,W,H)}
  const d=src.data,o=(y*W+x)*4,t=[d[o],d[o+1],d[o+2]];if(clear&&!d[o+3])return;
@@ -252,12 +261,15 @@ function fill(x,y,clear){if(x<0||y<0||x>=W||y>=H)return;const L=frames[cf].L[cl]
  const m=new Uint8Array(W*H),stk=[y*W+x];m[stk[0]]=1;
  while(stk.length){const p=stk.pop(),px=p%W;for(const q of[px>0&&p-1,px<W-1&&p+1,p>=W&&p-W,p<W*H-W&&p+W])if(q!==false&&!m[q]&&ok(q*4)){m[q]=1;stk.push(q)}}
  const im=g.getImageData(0,0,W,H),r=[1,3,5].map(i=>parseInt(color.slice(i,i+2),16));
- for(let p=0;p<W*H;p++)if(m[p]){const i=p*4;if(clear)im.data[i+3]=0;else{im.data[i]=r[0];im.data[i+1]=r[1];im.data[i+2]=r[2];im.data[i+3]=255}}
+ const m0=m.slice();if(!clear)for(let q=0;q<2;q++){const n=m.slice();for(let p=0;p<W*H;p++)if(!m[p]){const px=p%W;if((px>0&&m[p-1])||(px<W-1&&m[p+1])||(p>=W&&m[p-W])||(p<W*H-W&&m[p+W]))n[p]=1}m.set(n)}
+ for(let p=0;p<W*H;p++)if(m[p]){const i=p*4;if(clear)im.data[i+3]=0;else if(m0[p]){im.data[i]=r[0];im.data[i+1]=r[1];im.data[i+2]=r[2];im.data[i+3]=255}else{const a=im.data[i+3]/255;if(a<1){for(let k=0;k<3;k++)im.data[i+k]=im.data[i+k]*a+r[k]*(1-a);im.data[i+3]=255}}}
  g.putImageData(im,0,0);render()}
 
 /* ---------- SELECT / TRANSFORM ---------- */
 function selFin(){const i=frames.indexOf(SEL.f);if(i>=0)dirty.add(i);SEL.f.th=null;clearTimeout(dt);dt=setTimeout(flush,300);ov.getContext('2d').clearRect(0,0,W,H)}
-function commitSel(){if(!SEL)return;const S=SEL,g=S.f.L[S.l].getContext('2d');g.save();g.globalAlpha=1;g.translate(S.cx,S.cy);g.rotate(S.r);g.scale(S.s,S.s);g.drawImage(S.c,-S.w/2,-S.h/2);g.restore();selFin();SEL=null;render();drawTL()}
+const bendUI=()=>{const o=ov.getContext('2d');o.clearRect(0,0,W,H);if(!BEND)return;sty(o);shape(o,'bend',BEND.a,BEND.b,0);o.globalAlpha=1;const c=BEND.n;o.fillStyle='#fff';o.strokeStyle='#22d3ee';o.lineWidth=2/Z;o.beginPath();o.arc(c[0],c[1],7/Z,0,7);o.fill();o.stroke()};
+function commitBend(){if(!BEND)return;const B=BEND;BEND=null;pushU();const g=frames[cf].L[cl].getContext('2d');sty(g);BC=B.c;shape(g,'bend',B.a,B.b,0);g.globalAlpha=1;BC=null;ov.getContext('2d').clearRect(0,0,W,H);render();done()}
+function commitSel(){commitBend();if(!SEL)return;const S=SEL,g=S.f.L[S.l].getContext('2d');g.save();g.globalAlpha=1;g.translate(S.cx,S.cy);g.rotate(S.r);g.scale(S.s,S.s);g.drawImage(S.c,-S.w/2,-S.h/2);g.restore();selFin();SEL=null;render();drawTL()}
 function delSel(){if(!SEL)return;selFin();SEL=null;render();drawTL()}
 function finishLift(l,im,m,x0,y0,x1,y1){const w=x1-x0+1,h=y1-y0+1,sp=document.createElement('canvas');sp.width=w;sp.height=h;const sg=sp.getContext('2d'),so=sg.createImageData(w,h),d=im.data;
  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const n=y*W+x;if(!m[n])continue;const i=n*4,j=((y-y0)*w+(x-x0))*4;so.data[j]=d[i];so.data[j+1]=d[i+1];so.data[j+2]=d[i+2];so.data[j+3]=d[i+3];d[i]=d[i+1]=d[i+2]=d[i+3]=0}
@@ -302,6 +314,7 @@ function done(){frames[cf].th=null;if(tool!=='eraser'&&tool!=='move')addRecent()
 ov.onpointerdown=e=>{ov.setPointerCapture(e.pointerId);
  if(tool==='hand'||e.button===1||space){D={k:'pan',x:e.clientX-pan[0],y:e.clientY-pan[1]};return}
  if(ro)return toast('View-only project');
+ if(BEND){const q=pt(e);if(Math.hypot(q[0]-BEND.n[0],q[1]-BEND.n[1])<14/Z){D={k:'bn'};return}commitBend()}
  const p=pt(e),c=frames[cf].L[cl],g=c.getContext('2d');
  if(tool==='pick'){if(p[0]<0||p[1]<0||p[0]>=W||p[1]>=H)return;const d=view.getContext('2d').getImageData(p[0]|0,p[1]|0,1,1).data;setColor('#'+[...d].slice(0,3).map(v=>v.toString(16).padStart(2,'0')).join(''));return}
  if(tool==='select'){selDown(e);return}
@@ -310,12 +323,12 @@ ov.onpointerdown=e=>{ov.setPointerCapture(e.pointerId);
  if(tool==='eraser'&&eM==='stroke'){fill(p[0]|0,p[1]|0,1);D={k:'es'};return}
  if(tool==='move'){const t=mk();t.getContext('2d').drawImage(c,0,0);D={k:'mv',p,t};return}
  D={k:'d',p,l:p};if(SH.includes(tool))return;seg(g,p,p);render()};
-ov.onpointermove=e=>{if(!D)return;if(D.k==='pan'){pan=[e.clientX-D.x,e.clientY-D.y];xf();return}if(D.k[0]==='s'){selMove(e);return}
+ov.onpointermove=e=>{if(!D)return;if(D.k==='pan'){pan=[e.clientX-D.x,e.clientY-D.y];xf();return}if(D.k==='bn'){const q=pt(e),B=BEND;B.n=q;B.c=BC=[2*q[0]-(B.a[0]+B.b[0])/2,2*q[1]-(B.a[1]+B.b[1])/2];bendUI();return}if(D.k[0]==='s'){selMove(e);return}
  const p=pt(e),g=frames[cf].L[cl].getContext('2d');
  if(D.k==='d'){if(SH.includes(tool)){const o=ov.getContext('2d');o.clearRect(0,0,W,H);sty(o);shape(o,tool,D.p,p,fillOn)}else{seg(g,D.l,p);D.l=p;render()}}
  else if(D.k==='mv'){g.globalAlpha=1;g.clearRect(0,0,W,H);g.drawImage(D.t,p[0]-D.p[0],p[1]-D.p[1]);render()}
  else if(D.k==='es')fill(p[0]|0,p[1]|0,1)};
-ov.onpointerup=ov.onpointercancel=e=>{if(!D)return;if(D.k[0]==='s'){selUp(e);return}if(D.k==='d'&&SH.includes(tool)){ov.getContext('2d').clearRect(0,0,W,H);const g=frames[cf].L[cl].getContext('2d');sty(g);shape(g,tool,D.p,pt(e),fillOn);g.globalAlpha=1;render()}const k=D.k;D=null;if(k!=='pan')done()};
+ov.onpointerup=ov.onpointercancel=e=>{if(!D)return;if(D.k==='bn'){D=null;return}if(D.k==='d'&&tool==='bend'){const a=D.p,b=pt(e),m=[(a[0]+b[0])/2,(a[1]+b[1])/2];if(Math.hypot(b[0]-a[0],b[1]-a[1])<4){D=null;return}BEND={a,b,n:m,c:m};BC=m;D=null;bendUI();return}if(D.k[0]==='s'){selUp(e);return}if(D.k==='d'&&SH.includes(tool)){ov.getContext('2d').clearRect(0,0,W,H);const g=frames[cf].L[cl].getContext('2d');sty(g);shape(g,tool,D.p,pt(e),fillOn);g.globalAlpha=1;render()}const k=D.k;D=null;if(k!=='pan')done()};
 document.addEventListener('keydown',e=>{const t=e.target;if(t.matches&&t.matches('input,textarea,select,[contenteditable]'))return;
  if(e.code==='Space'){space=true;e.preventDefault()}
  if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();doUndo()}if((e.ctrlKey||e.metaKey)&&(e.key==='y'||(e.shiftKey&&e.key==='Z'))){e.preventDefault();doRedo()}
@@ -331,10 +344,10 @@ document.addEventListener('keyup',e=>{if(e.code==='Space')space=false});
 $('#ly').onclick=()=>{const p=$('#lp');p.classList.toggle('hide');p.innerHTML='<b>Layers (top = front)</b>'+[3,2,1,0].map(i=>`<label><span><input type="radio" name="al" value="${i}" ${cl===i?'checked':''}> Layer ${i+1}</span><input type="checkbox" data-v="${i}" ${vis[i]?'checked':''}></label>`).join('')+'<button id="la">Show all</button>';
  $$('[name=al]').forEach(r=>r.onchange=()=>{commitSel();cl=+r.value});$$('[data-v]').forEach(c=>c.onchange=()=>{vis[+c.dataset.v]=c.checked?1:0;render()});$('#la').onclick=()=>{vis=[1,1,1,1];render();$('#ly').click();$('#ly').click()}};
 $('#sett').onclick=()=>{const p=$('#pop');p.classList.toggle('hide');if(p.classList.contains('hide'))return;
- p.innerHTML=`<b>Project settings</b><label>Title<input id="s1" value="${esc(P.title)}"></label><label>FPS<input id="s2" type="number" min="1" max="120" value="${P.fps}" style="width:70px"></label><label><span>Budget mode (hold frames 2×)</span><input type="checkbox" id="s3" ${P.budget?'checked':''}></label><label>BPM<input id="s4" type="number" min="40" max="240" value="${bpm}" style="width:70px"></label><label><span>Publish to community</span><input type="checkbox" id="s5" ${P.published?'checked':''}></label>
+ p.innerHTML=`<b>Project settings</b><label>Title<input id="s1" value="${esc(P.title)}"></label><label>FPS<input id="s2" type="number" min="1" max="120" value="${P.fps}" style="width:70px"></label><label><span>Budget mode (hold frames 2×)</span><input type="checkbox" id="s3" ${P.budget?'checked':''}></label><label>BPM<input id="s4" type="number" min="40" max="240" value="${bpm}" style="width:70px"></label>
  <b>Onion skin</b><label><span>Frames before<b id="o1v" style="color:var(--b);margin-left:6px">${on.n}</b></span><input id="o1" type="range" min="0" max="10" value="${on.n}"></label><label><span>Nearest opacity<b id="o2v" style="color:var(--b);margin-left:6px">${Math.round(on.a*100)}%</b></span><input id="o2" type="range" min="0" max="100" value="${Math.round(on.a*100)}"></label><label><span>Falloff<b id="o3v" style="color:var(--b);margin-left:6px">${Math.round(on.d*100)}%</b></span><input id="o3" type="range" min="10" max="100" value="${Math.round(on.d*100)}"></label>
  <b>Collaborators</b>${P.members.map((u,i)=>`<label><span>${esc(P.memberNames[i]||'?')}${u===P.owner?' (owner)':''}</span>${me.uid===P.owner&&u!==P.owner?`<button data-rm="${i}" title="Remove">✕</button>`:''}</label>`).join('')}<div class="row"><input id="s6" placeholder="Username" style="flex:1;min-width:0"><button id="s7">Invite</button></div>`;
- $('#s1').oninput=e=>{P.title=e.target.value;$('#pt').textContent=P.title;pushMeta(['title'])};$('#s2').onchange=e=>{P.fps=Math.max(1,Math.min(120,+e.target.value||24));drawTL();pushMeta(['fps'])};$('#s3').onchange=e=>{P.budget=e.target.checked;drawTL();pushMeta(['budget'])};$('#s4').onchange=e=>{bpm=+e.target.value||120;drawRoll();drawTL();pushMeta(['bpm'])};$('#s5').onchange=e=>{P.published=e.target.checked;pushMeta(['published'])};
+ $('#s1').oninput=e=>{P.title=e.target.value;$('#pt').textContent=P.title;pushMeta(['title'])};$('#s2').onchange=e=>{P.fps=Math.max(1,Math.min(120,+e.target.value||24));drawTL();pushMeta(['fps'])};$('#s3').onchange=e=>{P.budget=e.target.checked;drawTL();pushMeta(['budget'])};$('#s4').onchange=e=>{bpm=+e.target.value||120;drawRoll();drawTL();pushMeta(['bpm'])};
  $('#o1').oninput=e=>{on.n=+e.target.value;$('#o1v').textContent=on.n;render()};$('#o2').oninput=e=>{on.a=e.target.value/100;$('#o2v').textContent=e.target.value+'%';render()};$('#o3').oninput=e=>{on.d=e.target.value/100;$('#o3v').textContent=e.target.value+'%';render()};
  $$('[data-rm]').forEach(b=>b.onclick=async()=>{const i=+b.dataset.rm;if(!confirm('Remove '+(P.memberNames[i]||'this collaborator')+' from the project?'))return;const m=P.members.filter((_,k)=>k!==i),n=P.memberNames.filter((_,k)=>k!==i);try{await updateDoc(doc(db,'projects',P.id),{members:m,memberNames:n});P.members=m;P.memberNames=n;toast('Collaborator removed');$('#sett').click();$('#sett').click()}catch(e){toast(e.message)}});
  $('#s7').onclick=async()=>{if(await invite(P.id,$('#s6').value,P.title))toast('Invite sent')}};
@@ -381,10 +394,11 @@ $('#t0').onclick=()=>{pause();setT(0);tw.scrollLeft=0};$('#t3').onclick=()=>{pau
 $('#tp').onclick=()=>playing?pause():play();
 
 /* ---------- PLAYBACK ---------- */
+const IR={};const impulse=(a,s)=>{const k=Math.round(s*2);if(IR[k])return IR[k];const n=Math.floor(a.sampleRate*(.4+s)),b=a.createBuffer(2,n,a.sampleRate);for(let ch=0;ch<2;ch++){const d=b.getChannelData(ch);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2.5)}return IR[k]=b};
 function actx(){if(!A){A=new (window.AudioContext||window.webkitAudioContext)();master=A.createGain();master.connect(A.destination)}if(A.state==='suspended')A.resume();return A}
 async function play(){commitSel();if(!dur())return;if(T>=dur())T=0;const a=actx();const need=[...new Set(notes.map(n=>n.i))].filter(i=>!banks[i]);if(need.length)await Promise.all(need.map(ensure));if(playing)return;playing=true;T0=T;t0=a.currentTime;$('#tp').innerHTML=ICON.pause;
  for(const n of notes){const s=n.s*60/bpm,l=n.l*60/bpm;if(muted.has(n.i)||s+l<=T)continue;const when=a.currentTime+Math.max(0,s-T);playNote(n.i,n.p,when,s<T?s+l-T:l)}
- for(const c of clips){const len=c.out-c.in;if(c.s+len<=T)continue;const sr=a.createBufferSource(),g=a.createGain(),skip=Math.max(0,T-c.s),rem=len-skip,when=a.currentTime+Math.max(0,c.s-T);sr.buffer=c.buf;g.gain.setValueAtTime(c.fi&&!skip?0:c.gain,when);if(c.fi&&!skip)g.gain.linearRampToValueAtTime(c.gain,when+c.fi);if(c.fo){g.gain.setValueAtTime(c.gain,when+Math.max(0,rem-c.fo));g.gain.linearRampToValueAtTime(0,when+rem)}sr.connect(g);g.connect(master);sr.start(when,c.in+skip,rem);srcs.push(sr)}
+ for(const c of clips){const len=c.out-c.in;if(c.s+len<=T)continue;const sr=a.createBufferSource(),g=a.createGain(),skip=Math.max(0,T-c.s),rem=len-skip,when=a.currentTime+Math.max(0,c.s-T);sr.buffer=c.buf;g.gain.setValueAtTime(c.fi&&!skip?0:c.gain,when);if(c.fi&&!skip)g.gain.linearRampToValueAtTime(c.gain,when+c.fi);if(c.fo){g.gain.setValueAtTime(c.gain,when+Math.max(0,rem-c.fo));g.gain.linearRampToValueAtTime(0,when+rem)}sr.connect(g);g.connect(master);{const wet=c.rv||(c.sus ? 0.35 : 0);if(wet>0){const cv=a.createConvolver(),wg=a.createGain();cv.buffer=impulse(a,c.sus||0);wg.gain.value=wet;g.connect(cv);cv.connect(wg);wg.connect(master)}}sr.start(when,c.in+skip,rem);srcs.push(sr)}
  requestAnimationFrame(tick)}
 function tick(){if(!playing)return;setT(T0+(A.currentTime-t0));if(T>=dur()){if(looping){pause();T=0;play();return}const d=dur();pause();setT(d);return}requestAnimationFrame(tick)}
 function pause(){playing=false;$('#tp').innerHTML=ICON.play;srcs.forEach(s=>{try{s.stop()}catch(e){}});srcs=[];render()}
@@ -466,14 +480,16 @@ async function addMedia(fl){if(ro)return toast('View-only project');const MAXA=1
 function place(m){const c={m,name:m.name,buf:m.buf,mid:m.id,s:T,in:0,out:m.buf.duration,gain:1,fi:0,fo:0};clips.push(c);selC=c;buildBin();drawTL();pushMeta(['clips','media'])}
 function stopPv(){if(pv){const s=pv.s;pv=null;s.onended=null;try{s.stop()}catch(e){}}}
 function buildBin(){const el=$('#mbin');if(!el)return;const c=selC;
- el.innerHTML=`<b>Media</b><button id="ma" class="pr">＋ Add audio (mp3, wav…)</button><small style="color:var(--m)">Max 16 MB per file. Uploaded audio is stored in the project and downloads automatically for everyone who opens it.</small><input type="file" id="maf" accept="audio/*" multiple class="hide">`+(media.map((m,i)=>`<div class="card" style="padding:10px"><small>${esc(m.name)} · ${m.buf.duration.toFixed(1)}s · ${m.saved?'☁ shared':'uploading…'}</small><div class="row"><button data-mp="${i}">${pv&&pv.i===i?'■ Stop':'▶ Preview (5s)'}</button><button data-mt="${i}">To timeline</button><button data-md="${i}">✕</button></div></div>`).join('')||'<small style="color:var(--m)">Add audio files, then put them on the timeline at the playhead.</small>')
- +(c?`<b>Clip: ${esc(c.name)}</b>`+[['Volume','gain',0,2,.05],['Start (s)','s',0,600,.05],['Trim in','in',0,c.m.buf.duration,.05],['Trim out','out',0,c.m.buf.duration,.05],['Fade in','fi',0,20,.1],['Fade out','fo',0,20,.1]].map(r=>`<label style="display:flex;justify-content:space-between;gap:6px"><small>${r[0]}</small><input type="number" data-cp="${r[1]}" min="${r[2]}" max="${r[3]}" step="${r[4]}" value="${(+c[r[1]]).toFixed(2)}" style="width:84px"></label>`).join('')+'<div class="row"><button id="cs">Split at playhead</button><button id="cd">Duplicate</button><button id="cx">Delete</button></div>':'');
- $('#ma').onclick=()=>$('#maf').click();$('#maf').onchange=e=>addMedia(e.target.files);
+ el.innerHTML=`<b>Media</b><button id="ma" class="pr">＋ Add audio (mp3, wav…)</button><button id="mrec">${REC?'■ Stop recording':'🎙 Record voice'}</button><small style="color:var(--m)">Max 16 MB per file. Uploaded audio is stored in the project and downloads automatically for everyone who opens it.</small><input type="file" id="maf" accept="audio/*" multiple class="hide">`+(media.map((m,i)=>`<div class="card" style="padding:10px"><small>${esc(m.name)} · ${m.buf.duration.toFixed(1)}s · ${m.saved?'☁ shared':'uploading…'}</small><div class="row"><button data-mp="${i}">${pv&&pv.i===i?'■ Stop':'▶ Preview (5s)'}</button><button data-mr="${i}" title="Rename">✎</button><button data-mt="${i}">To timeline</button><button data-md="${i}">✕</button></div></div>`).join('')||'<small style="color:var(--m)">Add audio files, then put them on the timeline at the playhead.</small>')
+ +(c?`<b>Clip: ${esc(c.name)}</b>`+[['Volume','gain',0,2,.05],['Start (s)','s',0,600,.05],['Trim in','in',0,c.m.buf.duration,.05],['Trim out','out',0,c.m.buf.duration,.05],['Fade in','fi',0,20,.1],['Fade out','fo',0,20,.1],['Reverb','rv',0,1,.05],['Sustain tail (s)','sus',0,8,.1]].map(r=>`<label style="display:flex;justify-content:space-between;gap:6px"><small>${r[0]}</small><input type="number" data-cp="${r[1]}" min="${r[2]}" max="${r[3]}" step="${r[4]}" value="${(+c[r[1]]||0).toFixed(2)}" style="width:84px"></label>`).join('')+'<div class="row"><button id="cr">Rename</button><button id="cs">Split at playhead</button><button id="cd">Duplicate</button><button id="cx">Delete</button></div>':'');
+ $('#ma').onclick=()=>$('#maf').click();$('#mrec').onclick=toggleRec;
+ $$('[data-mr]').forEach(b=>b.onclick=()=>{if(ro)return;const m=media[+b.dataset.mr],n=prompt('Rename audio',m.name);if(!n||!n.trim())return;m.name=n.trim();clips.forEach(c=>{if(c.m===m&&!c.nm)c.name=m.name});buildBin();drawTL();pushMeta(['clips','media'])});
+ $('#maf').onchange=e=>addMedia(e.target.files);
  $$('[data-mp]').forEach(b=>b.onclick=()=>{const i=+b.dataset.mp,was=pv&&pv.i===i;stopPv();if(!was){const m=media[i],a=actx(),s=a.createBufferSource();s.buffer=m.buf;s.connect(master);s.onended=()=>{if(pv&&pv.s===s){pv=null;buildBin()}};s.start(0,0,Math.min(5,m.buf.duration));pv={s,i}}buildBin()});
  $$('[data-mt]').forEach(b=>b.onclick=()=>place(media[+b.dataset.mt]));
  $$('[data-md]').forEach(b=>b.onclick=()=>{stopPv();const m=media[+b.dataset.md];media=media.filter(x=>x!==m);clips=clips.filter(x=>x.m!==m);if(selC&&selC.m===m)selC=null;for(let k=0;k<(m.n||0);k++)deleteDoc(doc(db,'projects',P.id,'media',m.id+'_'+k)).catch(()=>{});buildBin();drawTL();pushMeta(['clips','media'])});
  $$('[data-cp]').forEach(i=>i.onchange=()=>{const k=i.dataset.cp;c[k]=Math.max(+i.min,Math.min(+i.max,+i.value||0));if(c.out<=c.in+.05){if(k==='in')c.in=c.out-.05;else c.out=c.in+.05}buildBin();drawTL();pushMeta(['clips'])});
- if(c){$('#cs').onclick=()=>clipOp(0);$('#cd').onclick=()=>clipOp(1);$('#cx').onclick=()=>clipOp(2)}}
+ if(c){$('#cr').onclick=()=>{if(ro)return;const n=prompt('Rename clip',c.name);if(!n||!n.trim())return;c.nm=c.name=n.trim();buildBin();drawTL();pushMeta(['clips'])};$('#cs').onclick=()=>clipOp(0);$('#cd').onclick=()=>clipOp(1);$('#cx').onclick=()=>clipOp(2)}}
 function clipOp(k){const c=selC;if(!c)return;
  if(k===0){const len=c.out-c.in;if(T>c.s+.02&&T<c.s+len-.02){const t=T-c.s+c.in,n={...c,s:T,in:t,fi:0};c.out=t;c.fo=0;clips.push(n);selC=n}else toast('Put the playhead inside the clip first')}
  else if(k===1){const n={...c,s:c.s+(c.out-c.in)};clips.push(n);selC=n}else{clips=clips.filter(x=>x!==c);selC=null}buildBin();drawTL();pushMeta(['clips'])}
@@ -521,10 +537,10 @@ function loadNotes(j){nw.querySelectorAll('.sn').forEach(n=>n.remove());ng.inner
 const SID=Math.random().toString(36).slice(2,10);
 let unsubP,seen={},pushed={},sent={},mdirty=new Set(),metaT,held=false,pendR=null,pendNote=null,stT;
 const ser=v=>JSON.stringify(v===undefined?null:v);
-const G={title:()=>P.title,fps:()=>P.fps,budget:()=>!!P.budget,published:()=>!!P.published,bpm:()=>bpm,midi:()=>notes.map(n=>({p:n.p,s:n.s,l:n.l,i:n.i})),nf:()=>frames.length,notepad:()=>serNotes(),clips:()=>clips.map(c=>({mid:c.mid,s:c.s,in:c.in,out:c.out,gain:c.gain,fi:c.fi,fo:c.fo})),media:()=>media.map(m=>({id:m.id,name:m.name}))};
+const G={title:()=>P.title,fps:()=>P.fps,budget:()=>!!P.budget,published:()=>!!P.published,bpm:()=>bpm,midi:()=>notes.map(n=>({p:n.p,s:n.s,l:n.l,i:n.i})),nf:()=>frames.length,notepad:()=>serNotes(),clips:()=>clips.map(c=>({mid:c.mid,s:c.s,in:c.in,out:c.out,gain:c.gain,fi:c.fi,fo:c.fo,rv:c.rv||0,sus:c.sus||0,nm:c.nm||''})),media:()=>media.map(m=>({id:m.id,name:m.name}))};
 const ALL=Object.keys(G),RK=[...ALL,'members','memberNames'];
 const LBL={title:'settings',fps:'settings',budget:'settings',published:'settings',bpm:'music',midi:'music',notepad:'notes',clips:'audio',media:'audio',nf:'frames',members:'collaborators',memberNames:'collaborators'};
-const pushMeta=k=>{if(!P||ro)return;k.forEach(x=>mdirty.add(x));clearTimeout(metaT);metaT=setTimeout(()=>flushMeta(),500)};
+const pushMeta=k=>{if(!P||ro)return;k.forEach(x=>mdirty.add(x))};
 let upP=null;
 async function uploadMedia(){while(upP)await upP.catch(()=>{});upP=(async()=>{for(const m of media)if(!m.saved){const s=b64(m.raw),n=Math.ceil(s.length/700000);for(let k=0;k<n;k+=4){await Promise.all([...Array(Math.min(4,n-k))].map((_,j)=>setDoc(doc(db,'projects',P.id,'media',m.id+'_'+(k+j)),{id:m.id,k:k+j,name:m.name,data:s.slice((k+j)*700000,(k+j+1)*700000)})));$('#stat').textContent=`Uploading ${m.name} ${Math.min(100,Math.round((k+4)/n*100))}%`}m.saved=1;m.n=n}})();try{await upP}finally{upP=null}}
 async function flushMeta(force){if(!P||ro||!mdirty.size)return;const o={byName:me.name,updated:serverTimestamp()},ks=[...mdirty];mdirty.clear();
@@ -538,12 +554,12 @@ async function syncMedia(){const want=(P.media||[]).map(m=>m.id);media=media.fil
  const need=want.filter(id=>!media.some(m=>m.id===id));
  if(need.length){$('#stat').textContent='Downloading shared audio…';const ms=await getDocs(collection(db,'projects',P.id,'media')),g={};ms.docs.forEach(d=>{const v=d.data();if(!need.includes(v.id))return;(g[v.id]=g[v.id]||{name:v.name,p:[]}).p[v.k]=v.data});
   for(const id in g){try{const raw=unb64(g[id].p.join(''));media.push({id,name:g[id].name,buf:await actx().decodeAudioData(raw.slice(0)),raw,saved:1,n:g[id].p.length})}catch(e){console.warn(e)}}$('#stat').textContent=''}
- const si=clips.indexOf(selC);clips=(P.clips||[]).map(c=>{const m=media.find(x=>x.id===c.mid);return m&&{...c,m,name:m.name,buf:m.buf}}).filter(Boolean);selC=si>=0?clips[si]||null:null}
+ const si=clips.indexOf(selC);clips=(P.clips||[]).map(c=>{const m=media.find(x=>x.id===c.mid);return m&&{...c,m,name:c.nm||m.name,buf:m.buf}}).filter(Boolean);selC=si>=0?clips[si]||null:null}
 function applyNotepad(j){const k={x:NP.x,y:NP.y,z:NP.z};loadNotes(j);NP.x=k.x;NP.y=k.y;NP.z=k.z;nxf();pushed.notepad=ser(serNotes());pendNote=null}
 function onMeta(d){if(!P)return;if(held){pendR=d;return}
- const ch=RK.filter(k=>{const t=ser(d[k]);return t!==seen[k]&&!(sent[k]&&sent[k].has(t))});RK.forEach(k=>seen[k]=ser(d[k]));
+ const ch=RK.filter(k=>{const t=ser(d[k]);return t!==seen[k]&&!(sent[k]&&sent[k].has(t))&&!(me.uid===P.owner&&mdirty.has(k)&&k!=='members'&&k!=='memberNames')});RK.forEach(k=>seen[k]=ser(d[k]));
  if(!ch.length)return;ch.forEach(k=>mdirty.delete(k));
- if(ch.includes('members')||ch.includes('memberNames')){P.members=d.members||[];P.memberNames=d.memberNames||[];
+ if(ch.includes('members')||ch.includes('memberNames')){P.members=d.members||[];P.memberNames=d.memberNames||[];if(!unsub&&P.members.length>1)attachFr(new Date(Date.now()-60000));
   if(!ro&&!P.members.includes(me.uid)){toast('You were removed from this project');pause();unsub&&unsub();unsubP&&unsubP();board();return}}
  if(ch.includes('title')){P.title=d.title;$('#pt').textContent=P.title}
  ['fps','budget','published'].forEach(k=>{if(ch.includes(k))P[k]=d[k]});
@@ -561,19 +577,44 @@ function onMeta(d){if(!P)return;if(held){pendR=d;return}
 let PRES={},presT,presR;
 const hue=n=>`hsl(${[...String(n)].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7)%360} 65% 42%)`;
 function drawPres(){const el=$('#pres');if(!el)return;const now=Date.now();
- el.innerHTML=Object.entries(PRES).map(([u,v])=>[u,v||{}]).filter(([u,v])=>{const t=v.t?(v.t.toMillis?v.t.toMillis():+v.t):now;return now-t<45000}).map(([u,v])=>`<span class="av${u===me.uid?' me':''}" title="${esc(v.n||'?')}${u===me.uid?' (you)':''}" style="background:${hue(v.n)}">${esc(String(v.n||'?').charAt(0).toUpperCase())}</span>`).join('')}
-const beat=()=>{if(!P||ro||$('#e').classList.contains('hide'))return;updateDoc(doc(db,'projects',P.id),{['presence.'+me.uid]:{n:me.name,t:serverTimestamp()}}).catch(()=>{})};
+ el.innerHTML=Object.entries(PRES).map(([u,v])=>[u,v||{}]).filter(([u,v])=>{const t=v.t?(v.t.toMillis?v.t.toMillis():+v.t):now;return now-t<75000}).map(([u,v])=>`<span class="av${u===me.uid?' me':''}" title="${esc(v.n||'?')}${u===me.uid?' (you)':''}" style="background:${hue(v.n)}">${esc(String(v.n||'?').charAt(0).toUpperCase())}</span>`).join('')}
+const beat=()=>{if(!P||ro||P.members.length<2||$('#e').classList.contains('hide'))return;updateDoc(doc(db,'projects',P.id),{['presence.'+me.uid]:{n:me.name,t:serverTimestamp()}}).catch(()=>{})};
 function stopPres(keep){clearInterval(presT);clearInterval(presR);if(!keep&&P&&!ro)updateDoc(doc(db,'projects',P.id),{['presence.'+me.uid]:deleteField()}).catch(()=>{})}
-function startPres(){stopPres(true);beat();presT=setInterval(beat,15000);presR=setInterval(drawPres,8000)}
+function startPres(){stopPres(true);beat();presT=setInterval(beat,30000);presR=setInterval(drawPres,8000)}
 addEventListener('pagehide',()=>stopPres());
 function initSync(raw){seen={};sent={};pushed={};mdirty.clear();RK.forEach(k=>seen[k]=ser(raw[k]));ALL.forEach(k=>pushed[k]=ser(G[k]()));
- unsubP&&unsubP();unsubP=onSnapshot(doc(db,'projects',P.id),sn=>{if(sn.exists()){PRES=sn.data().presence||{};drawPres();onMeta(sn.data())}});startPres()}
+ unsubP&&unsubP();unsubP=onSnapshot(doc(db,'projects',P.id),sn=>{if(sn.exists()){PRES=sn.data().presence||{};drawPres();collab=isCollab();if(collab)pendMeta=sn.data();else onMeta(sn.data())}});startPres()}
 addEventListener('pointerdown',()=>held=true,true);
 const rel=()=>{held=false;if(pendR){const d=pendR;pendR=null;setTimeout(()=>onMeta(d),60)}};
 addEventListener('pointerup',rel,true);addEventListener('pointercancel',rel,true);addEventListener('blur',rel);
 const pushN=()=>pushMeta(['notepad']);
 nb.addEventListener('input',pushN);nb.addEventListener('pointerup',()=>setTimeout(pushN,50));
 nb.addEventListener('focusout',()=>{setTimeout(()=>{if(pendNote!=null&&!nw.contains(document.activeElement))applyNotepad(pendNote)},0);pushN()});
+
+/* ---------- RECORD / PREVIEW / FILE / PUBLISH ---------- */
+async function toggleRec(){if(ro)return toast('View-only project');if(REC){REC.stop();return}try{const st=await navigator.mediaDevices.getUserMedia({audio:true}),mr=new MediaRecorder(st),ch=[];mr.ondataavailable=e=>ch.push(e.data);mr.onstop=async()=>{st.getTracks().forEach(x=>x.stop());REC=null;pause();buildBin();await addMedia([new File([new Blob(ch,{type:mr.mimeType})],'Voice '+(recN++)+'.webm')]);const m=media[media.length-1];m&&place(m)};mr.start();REC=mr;if(!playing)play();buildBin()}catch(e){toast('Microphone unavailable: '+e.message)}}
+let plRaf=0,plV=false,plT0=0;
+function openPlayer(v){plV=v;plT0=T;$('#pl').classList.remove('hide');pause();setT(0);play();const c=$('#plc').getContext('2d'),sl=$('#pls'),tt=$('#plt');cancelAnimationFrame(plRaf);
+ const lp=()=>{c.drawImage(view,0,0);const d=dur()||1;if(!sl.matches(':active'))sl.value=T/d*1000;tt.textContent=T.toFixed(1)+' / '+d.toFixed(1)+'s';$('#plp').textContent=playing?'⏸':'▶';plRaf=requestAnimationFrame(lp)};lp()}
+function closePlayer(){cancelAnimationFrame(plRaf);pause();if(document.fullscreenElement)document.exitFullscreen();$('#pl').classList.add('hide');if(plV){plV=false;unsub&&unsub();unsubP&&unsubP();stopPres(true);board()}else{setT(plT0);render()}}
+const skipP=d=>{const w=playing;pause();setT(Math.min(dur(),T+d));if(w)play()};
+$('#plp').onclick=()=>playing?pause():play();$('#plr').onclick=()=>skipP(-5);$('#plf').onclick=()=>skipP(5);
+$('#pls').oninput=e=>{const w=playing;pause();setT(e.target.value/1000*dur());if(w)play()};
+$('#plz').onclick=()=>document.fullscreenElement?document.exitFullscreen():$('#pl').requestFullscreen();$('#plx').onclick=closePlayer;
+$('#pv1').onclick=()=>{commitSel();openPlayer(false)};
+const loadImgs=(f,arr)=>Promise.all(arr.map((u,k)=>new Promise(r=>{if(!u)return r();const im=new Image();im.onload=()=>{f.L[k].getContext('2d').drawImage(im,0,0);r()};im.src=u})));
+$('#dl').onclick=()=>{commitSel();const o={v:1,title:P.title,fps:P.fps,budget:!!P.budget,bpm,midi:notes.map(n=>({p:n.p,s:n.s,l:n.l,i:n.i})),notepad:serNotes(),frames:frames.map(f=>f.L.map(c=>{const u=c.toDataURL();return u===blank?'':u})),media:media.map(m=>({id:m.id,name:m.name,data:b64(m.raw)})),clips:G.clips()};
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(o)],{type:'application/json'}));a.download=(P.title||'project').replace(/[^\w-]+/g,'_')+'.twilight.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000)};
+$('#ul').onclick=()=>{if(ro)return toast('View-only project');$('#ulf').click()};
+$('#ulf').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||ro||!confirm('Replace this project\'s contents with the uploaded file?'))return;
+ try{const o=JSON.parse(await f.text());pause();const nm=[];for(const m of o.media||[]){const raw=unb64(m.data);nm.push({id:m.id,name:m.name,buf:await actx().decodeAudioData(raw.slice(0)),raw,saved:0})}
+  const nf=[];for(const a of o.frames||[]){const fr=newF();await loadImgs(fr,a);nf.push(fr)}
+  media=nm;frames=nf.length?nf:[newF()];P.fps=o.fps||24;P.budget=!!o.budget;bpm=o.bpm||120;notes=(o.midi||[]).map(n=>({...n}));loadNotes(o.notepad);P.clips=o.clips||[];P.media=nm.map(m=>({id:m.id,name:m.name}));clips=[];await syncMedia();
+  cf=0;T=0;undo=[];redo=[];selC=null;frames.forEach((_,i)=>dirty.add(i));tlSel=-1;render();drawTL();drawRoll();buildBin();await saveAll(true)}catch(x){toast('Could not load file: '+x.message)}};
+$('#pb').onclick=async()=>{if(ro)return toast('Already published or view-only');if(me.uid!==P.owner)return toast('Only the owner can publish');
+ if(!confirm('Publish "'+P.title+'"?\n\nOnce published you can NOT edit it again. Everyone can watch it from the Community tab.'))return;
+ pause();commitSel();await saveAll(true);const c=document.createElement('canvas');c.width=320;c.height=180;const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,320,180);frames[0].L.forEach(l=>g.drawImage(l,0,0,320,180));
+ try{await updateDoc(doc(db,'projects',P.id),{published:true,thumb:c.toDataURL('image/jpeg',.7)});P.published=true;ro=true;toast('Published! It is now locked.');unsub&&unsub();unsubP&&unsubP();stopPres();board()}catch(e){toast('Publish failed: '+e.message)}};
 addEventListener('resize',()=>P&&drawTL());
 </script>
 </body></html>
