@@ -41,7 +41,7 @@ input:focus{border-color:var(--a)}
 .sep{width:1px;height:22px;background:var(--l);margin:0 6px}
 main{position:relative;overflow:hidden;min-height:0;flex:1}main>div{position:absolute;inset:0}
 #st{overflow:hidden;background:#100e1c}#vw{position:absolute;left:0;top:0;transform-origin:0 0;width:960px;height:540px;box-shadow:0 0 60px #8b5cf655}
-#view,#ov{position:absolute;left:0;top:0;width:960px;height:540px}#ov{cursor:crosshair}
+#view,#ov{position:absolute;left:0;top:0;width:960px;height:540px}#hv{position:absolute;left:0;top:0;pointer-events:none;display:none}#ov{cursor:crosshair}
 #tl{flex:none;height:196px;background:var(--p);border-top:1px solid var(--l);display:flex;flex-direction:column}
 #tb{display:flex;gap:6px;align-items:center;padding:6px 12px}#tw{flex:1;overflow:auto;position:relative}#ti{position:relative}#tc{display:block;position:sticky;left:0}#ph{position:absolute;top:0;bottom:0;width:2px;background:var(--c);box-shadow:0 0 10px var(--c);pointer-events:none}
 #tm{font-variant-numeric:tabular-nums;color:var(--b);min-width:90px}
@@ -114,7 +114,7 @@ button:has(svg){display:inline-flex;align-items:center;justify-content:center;ga
 
 <div id="a" class="screen"><h1 class="logo" style="font-size:12px;letter-spacing:.6em">create · compose · imagine</h1>
 <div class="glass"><h1 class="logo">Twilight Studios</h1><input id="u" placeholder="Username" autocomplete="username"><input id="pw" type="text" placeholder="Password" autocomplete="off" autocapitalize="off" spellcheck="false" style="-webkit-text-security:disc;text-security:disc"><div id="err"></div>
-<div class="row"><button id="li" class="pr" style="flex:1">Log in</button><button id="su" style="flex:1">Create account</button></div><button id="off" style="border-style:dashed" title="Work without an account or internet; nothing is saved">Offline mode</button></div></div>
+<div class="row"><button id="li" class="pr" style="flex:1">Log in</button><button id="su" style="flex:1">Create account</button></div><button id="off" style="border-style:dashed" title="Work without an account or internet; saved only in this browser">Offline mode</button></div></div>
 
 <div id="b" class="screen hide"><div class="bh"><h1 class="logo">Twilight</h1><nav><button data-t="mine" class="on">Projects</button><button data-t="comm">Community</button><button data-t="inb">Inbox <i id="ib"></i></button></nav><span id="hi"></span><button id="lo">Log out</button></div>
 <section id="mine" class="grid"></section><section id="comm" class="grid hide"></section><section id="inb" class="grid hide"></section></div>
@@ -126,7 +126,7 @@ button:has(svg){display:inline-flex;align-items:center;justify-content:center;ga
 <nav><button data-s="anim" class="on">Animate</button><button data-s="music">Music</button><button data-s="note">Notes</button></nav>
 <span id="stat"></span><span id="pres"></span><button id="pv1" title="Watch the whole project">▶ Preview</button><button id="dl" title="Download project file">⬇ Download</button><button id="ul" title="Upload project file">⬆ Upload</button><input type="file" id="ulf" accept=".json,.txt" class="hide"><button id="pb" title="Publish (cannot be edited afterwards)">🚀 Publish</button><button id="ly">Layers</button><button id="sett">⚙ Settings</button><button id="sv" class="pr">Save</button></div>
 <div id="ptools"></div>
-<main><div id="st"><div id="vw"><canvas id="view" width="1920" height="1080"></canvas><canvas id="ov" width="960" height="540"></canvas></div></div>
+<main><div id="st"><canvas id="hv"></canvas><div id="vw"><canvas id="view" width="1920" height="1080"></canvas><canvas id="ov" width="960" height="540"></canvas></div></div>
 <div id="sM" class="hide"><div id="mt"></div><div id="mrow"><div id="mbin"></div><div id="ps"><div id="pi"><canvas id="keys"></canvas><div id="gw"><canvas id="gr"></canvas><div id="prph"></div></div></div></div></div></div>
 <div id="sN" class="hide"><div style="position:absolute;z-index:5;left:14px;top:14px;display:flex;gap:6px" id="nt"></div><div id="nprop" class="glass hide"></div><div id="nb" style="position:absolute;inset:0"><div id="nw"><svg id="nsvg" width="1" height="1"><defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#22d3ee"/></marker></defs><g id="ng"></g></svg><div id="nsel" class="hide"></div></div></div></div></main>
 <footer id="tl"><div id="tb"><button id="t0">⏮</button><button id="t1">⏪</button><button id="tp" class="pr">▶</button><button id="t2">⏩</button><button id="t3">⏭</button><span id="tm">0.00s</span><span class="sep"></span><button id="fa">＋ Frame</button><button id="fd">⧉ Duplicate</button><span class="sep"></span><button id="zo"></button><input id="zm" type="range" min="2" max="120" value="24" style="width:100px"><button id="zi"></button><span id="zl" style="color:var(--m);min-width:40px;font-size:12px">100%</span><button id="lp1">Loop</button></div>
@@ -135,13 +135,18 @@ button:has(svg){display:inline-flex;align-items:center;justify-content:center;ga
 <div id="cm" class="hide"></div><div id="pl" class="hide" style="position:fixed;inset:0;z-index:100;background:#000;display:flex;flex-direction:column"><div id="plw" style="flex:1;display:flex;align-items:center;justify-content:center;min-height:0"><canvas id="plc" width="1920" height="1080"></canvas></div><div id="plb" class="row" style="padding:10px 16px;background:#0a0912"><button id="plr">⏪ 5s</button><button id="plp" class="pr">⏸</button><button id="plf">5s ⏩</button><input id="pls" type="range" min="0" max="1000" value="0" style="flex:1"><span id="plt">0:00</span><button id="plz">⛶</button><button id="plx">✕</button></div><div id="rt" class="hide"></div></div><div id="toast" class="hide"></div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-analytics.js";
-import {getAuth,initializeAuth,inMemoryPersistence,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,onAuthStateChanged,updateProfile} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
-import {getFirestore,doc,setDoc,getDoc,getDocs,addDoc,collection,query,where,onSnapshot,updateDoc,deleteDoc,arrayUnion,serverTimestamp,deleteField,orderBy,limit,startAfter} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js";
 const firebaseConfig = { apiKey: "AIzaSyCj-nmQEwNtM5O17sJMSq4ywf6TieAvAUY", authDomain: "roentgen-df895.firebaseapp.com", projectId: "roentgen-df895", storageBucket: "roentgen-df895.firebasestorage.app", messagingSenderId: "893786159876", appId: "1:893786159876:web:2ec7c9e6b86af08999ee51", measurementId: "G-K42NV4YEP0" };
-const app = initializeApp(firebaseConfig);try{getAnalytics(app)}catch(e){}
-const auth=initializeAuth(app,{persistence:inMemoryPersistence}),db=getFirestore(app);
+/* Firebase is loaded ON DEMAND (only when logging in / creating an account). Offline mode never loads it,
+   so it works with no connection and not a single byte goes to Firestore. */
+let auth=null,db=null,fbP=null,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,onAuthStateChanged,updateProfile,doc,setDoc,getDoc,getDocs,addDoc,collection,query,where,onSnapshot,updateDoc,deleteDoc,arrayUnion,serverTimestamp,deleteField,orderBy,limit,startAfter;
+const FBV='https://www.gstatic.com/firebasejs/13.1.0/';
+function fb(){return fbP||(fbP=(async()=>{try{
+ const[A,AU,FS]=await Promise.all([import(FBV+'firebase-app.js'),import(FBV+'firebase-auth.js'),import(FBV+'firebase-firestore.js')]);
+ ({createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,onAuthStateChanged,updateProfile}=AU);
+ ({doc,setDoc,getDoc,getDocs,addDoc,collection,query,where,onSnapshot,updateDoc,deleteDoc,arrayUnion,serverTimestamp,deleteField,orderBy,limit,startAfter}=FS);
+ const app=A.initializeApp(firebaseConfig);import(FBV+'firebase-analytics.js').then(m=>m.getAnalytics(app)).catch(()=>{});
+ auth=AU.initializeAuth(app,{persistence:AU.inMemoryPersistence});db=FS.getFirestore(app);await authWatch()}
+ catch(e){fbP=null;throw new Error('Cannot reach the server - check your connection, or use Offline mode')}})())}
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const show=id=>{$$('.screen').forEach(s=>s.classList.add('hide'));$(id).classList.remove('hide')};
@@ -204,9 +209,9 @@ let me=null,pend='';
 
 /* ---------- AUTH ---------- */
 async function go(sign){const u=$('#u').value.trim(),p=$('#pw').value;$('#err').textContent='';if(!u||p.length<6){$('#err').textContent='Username and a 6+ character password required';return}
- try{if(sign){pend=u;const c=await createUserWithEmailAndPassword(auth,mail(u),p);await setDoc(doc(db,'users',c.user.uid),{name:u,lname:u.toLowerCase()});updateProfile(c.user,{displayName:u});me.name=u;$('#hi').textContent=u}else await signInWithEmailAndPassword(auth,mail(u),p)}catch(e){$('#err').textContent=(e.code||e.message).replace('auth/','').replace(/-/g,' ')}}
+ try{await fb();if(sign){pend=u;const c=await createUserWithEmailAndPassword(auth,mail(u),p);await setDoc(doc(db,'users',c.user.uid),{name:u,lname:u.toLowerCase()});updateProfile(c.user,{displayName:u});me.name=u;$('#hi').textContent=u}else await signInWithEmailAndPassword(auth,mail(u),p)}catch(e){$('#err').textContent=(e.code||e.message).replace('auth/','').replace(/-/g,' ')}}
 $('#pw').addEventListener('keydown',e=>e.stopPropagation());$('#u').addEventListener('keydown',e=>e.stopPropagation());$('#li').onclick=()=>go(0);$('#su').onclick=()=>go(1);$('#pw').onkeydown=e=>{if(e.key==='Enter')go(0)};
-onAuthStateChanged(auth,u=>{if(u){me={uid:u.uid,name:u.displayName||pend||u.email.split('@')[0]};board()}else{me=null;show('#a')}});
+const authWatch=()=>new Promise(res=>{let first=1;onAuthStateChanged(auth,u=>{if(u){me={uid:u.uid,name:u.displayName||pend||u.email.split('@')[0]};board()}else{me=null;show('#a')}if(first){first=0;res()}})});
 $('#lo').onclick=()=>signOut(auth);
 
 /* ---------- BOARD ---------- */
@@ -242,7 +247,7 @@ function wz(){const el=$('#wc'),s=W_.step;
 const W=960,H=540,RS=2,CW=W*RS,CH=H*RS,NL=4,LO=21,HI=109,RH=16,KW=72,INS=['Piano','Strings','Atmosphere','Choir','Flute','Guitar'];
 let selM='str',nLay=1,lord=[0],FR=0,rvs=false,loopM=0,rT=0,rt=0;
 let P,ro=false,frames=[],cf=0,cl=0,vis=[1,1,1,1],tool='pen',color='#000000',size=6,alpha=1,eM='pixel',fillOn=false,Z=1,pan=[0,0],space=false,D=null,SEL=null;
-let on={n:2,a:.3,d:.5},undo=[],redo=[],dirty=new Set(),dt,notes=[],clips=[],bpm=120,inst='Piano',snap=.25,lastLen=1,T=0,playing=false,looping=false,T0,t0,srcs=[],A,master,ZOOM=24,drop=-1,unsub,studio='anim',recent=JSON.parse(localStorage.tsRecent||'[]');
+let on={n:2,a:.3,d:.5},undo=[],redo=[],dirty=new Set(),dt,notes=[],clips=[],bpm=120,inst='Piano',snap=.25,lastLen=1,T=0,playing=false,looping=false,T0,t0,srcs=[],A,master,ZOOM=24,drop=-1,unsub,studio='anim',recent=[],recKey='tsRecent_none';
 let media=[],selC=null,selN=null,muted=new Set(),pv=null,vdest=null,CB=null,inbox={},pendMeta=null,collab=false,BEND=null,BC=null,REC=null,recN=1;
 const b64=ab=>{let s='',u=new Uint8Array(ab);for(let i=0;i<u.length;i+=32768)s+=String.fromCharCode.apply(null,u.subarray(i,i+32768));return btoa(s)};
 const unb64=s=>{const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u.buffer};
@@ -256,10 +261,10 @@ const addS=(f,k,s)=>{const a=f.S[k];if(s.t==='fill')a.splice(fillIdx(a),0,s);els
 /* frames: canvases are created lazily per layer and can be evicted (HD canvases are big) */
 const mkL=f=>{const a=[];for(let k=0;k<NL;k++)Object.defineProperty(a,k,{enumerable:true,configurable:true,get(){if(!f.hot&&!f.hp&&f.src)hydrate(f);return f.c[k]||(f.c[k]=mk())}});return a};
 const newF=()=>{const f={c:[null,null,null,null],S:[[],[],[],[]],B:[undefined,undefined,undefined,undefined],hot:true,src:null,hp:null,th:null,ed:0};f.L=mkL(f);return f};
-const view=$('#view'),ov=$('#ov'),st=$('#st'),vw=$('#vw');
+const view=$('#view'),ov=$('#ov'),st=$('#st'),vw=$('#vw'),hv=$('#hv');
 const span=()=>1,dur=()=>{let m=frames.length*span()/P.fps;for(const n of notes){const e=(n.s+n.l)*60/bpm;if(e>m)m=e}for(const c of clips){const e=c.s+c.out-c.in;if(e>m)m=e}return m};
 
-async function openP(id,r,vm){const d=await getDoc(doc(db,'projects',id));P={id,...d.data()};ro=r||!P.members.includes(me.uid)||!!P.published;bpm=P.bpm||120;notes=P.midi||[];media=[];clips=[];selC=null;
+async function openP(id,r,vm){const d=await getDoc(doc(db,'projects',id));P={id,...d.data()};loadRecent(id);ro=r||!P.members.includes(me.uid)||!!P.published;bpm=P.bpm||120;notes=P.midi||[];media=[];clips=[];selC=null;
  TQ.clear();TLEXT=0;pfTok++;frames=[];let mx=new Date(0),lastD=null,cnt=0;const FP=60;
  for(;;){const qs=lastD?query(collection(db,'projects',id,'frames'),orderBy('i'),limit(FP),startAfter(lastD)):query(collection(db,'projects',id,'frames'),orderBy('i'),limit(FP));const pg=await getDocs(qs);
   for(const x of pg.docs){const v=x.data();if(typeof v.i!=='number')continue;frames[v.i]=fromDoc(v);const q=v.ts;if(q&&q.toMillis&&q.toMillis()>mx.getTime())mx=q.toDate()}
@@ -317,28 +322,28 @@ async function saveFrames(ds,say){let n=0,err=null;
   if(say)$('#stat').textContent=`Saving frames ${++n}/${ds.length}…`});
  if(err)throw err}
 const dropOld=async()=>{const old=[];for(let i=frames.length;i<P.nf;i++)old.push(i);await pool(old,6,i=>deleteDoc(doc(db,'projects',P.id,'frames',pad(i))).catch(()=>{}));P.nf=frames.length};
-async function saveAll(manual){if(!P||ro||P.offline)return;if(savingP){if(!manual)return;try{await savingP}catch(e){}}
+async function saveAll(manual){if(!P||ro)return;if(P.offline)return locSave(manual);if(savingP){if(!manual)return;try{await savingP}catch(e){}}
  savingP=(async()=>{commitSel();$('#stat').textContent='Saving…';try{ALL.forEach(k=>mdirty.add(k));await flushMeta(true);await saveFrames([...dirty].sort((a,b)=>a-b),true);await dropOld();
   $('#stat').textContent='Saved '+new Date().toLocaleTimeString();manual&&toast('Project saved')}catch(e){$('#stat').textContent='Save failed';toast(e.message)}})();
  try{await savingP}finally{savingP=null;evict()}}
-const flush=()=>{};
+const flush=()=>{if(P&&P.offline)locSoon()};
 async function doFlush(){if(ro||savingP)return;if(dirty.size){try{await saveFrames([...dirty].sort((a,b)=>a-b))}catch(e){}}await dropOld();pushMeta(['nf'])}
 setInterval(()=>{if(!$('#e').classList.contains('hide'))saveAll(false)},900000);
 const isCollab=()=>P&&!ro&&P.members.length>1&&Object.entries(PRES).some(([u,v])=>u!==me.uid&&v&&v.t&&Date.now()-(v.t.toMillis?v.t.toMillis():Date.now())<75000);
 setInterval(async()=>{if(!P||ro||$('#e').classList.contains('hide'))return;collab=isCollab();if(!collab)return;try{await doFlush();await flushMeta();if(pendMeta){const d=pendMeta;pendMeta=null;onMeta(d)}await applyInbox()}catch(e){}},4000);
 addEventListener('beforeunload',e=>{if(P&&!ro&&dirty.size&&!collab){e.preventDefault();e.returnValue=''}});
-$('#sv').onclick=()=>saveAll(true);$('#bk').onclick=()=>{if(P&&P.offline){if(!confirm('Leave offline mode? Everything not downloaded will be lost.'))return;pause();P=null;me=null;$('#stat').textContent='';show('#a');return}pause();unsub&&unsub();unsubP&&unsubP();stopPres();saveAll(false);board()};
+$('#sv').onclick=()=>saveAll(true);$('#bk').onclick=()=>{if(P&&P.offline){pause();locSave(true).then(()=>{if(dirty.size&&!confirm('Saving to this device failed. Leave anyway? Unsaved work will be lost.'))return;clearTimeout(locT);P=null;me=null;$('#stat').textContent='';show('#a')});return}pause();unsub&&unsub();unsubP&&unsubP();stopPres();saveAll(false);board()};
 
 /* ---------- STUDIO SWITCH ---------- */
 function setStudio(s){studio=s;$$('#hd nav button').forEach(b=>b.classList.toggle('on',b.dataset.s===s));$('#st').classList.toggle('hide',s!=='anim');$('#sM').classList.toggle('hide',s!=='music');$('#sN').classList.toggle('hide',s!=='note');$('#ptools').classList.toggle('hide',s!=='anim');$('#tl').classList.toggle('hide',s==='note');$('#ly').classList.toggle('hide',s!=='anim');$('#pop').classList.add('hide');$('#lp').classList.add('hide');if(s==='music'){buildMusic();drawRoll();$('#ps').scrollTop=(HI-72)*RH}drawTL()}
 $$('#hd nav button').forEach(b=>b.onclick=()=>setStudio(b.dataset.s));
 
 /* ---------- ANIMATION TOOLS ---------- */
-const TOOLS=[['pen','','Pen'],['pencil','','Pencil'],['marker','','Highlighter'],['cal','','Calligraphy'],['spray','','Spray paint'],['eraser','','Eraser — tip: right-click + drag with ANY tool erases quickly'],['bucket','','Paint bucket'],['pick','','Eyedropper'],['line','','Line'],['bend','','Line bend — draw a line, then drag the middle node'],['rect','','Rectangle'],['ell','','Ellipse'],['tri','','Triangle'],['star','','Star'],['arrow','','Arrow'],['select','','Select & transform — click a stroke, or drag a box around strokes'],['move','','Move whole layer'],['hand','','Pan view']];
+const TOOLS=[['pen','','Pen'],['pencil','','Pencil'],['cal','','Calligraphy'],['spray','','Spray paint'],['eraser','','Eraser — tip: right-click + drag with ANY tool erases quickly'],['bucket','','Paint bucket'],['pick','','Eyedropper'],['line','','Line'],['bend','','Line bend — draw a line, then drag the middle node'],['rect','','Rectangle'],['ell','','Ellipse'],['tri','','Triangle'],['star','','Star'],['arrow','','Arrow'],['select','','Select & transform — click a stroke, or drag a box around strokes'],['move','','Move whole layer'],['hand','','Pan view']];
 const SH=['line','bend','rect','ell','tri','star','arrow'],PRE=['#000000','#ffffff','#ef4444','#f97316','#facc15','#22c55e','#22d3ee','#3b82f6','#8b5cf6','#f472b6','#92400e','#6b7280'];
 const mkIt=(id,k,l,o={})=>({id,k,l,f:o.f?1:0,em:o.em,svg:ICON[o.ic||k]});
 const GR={
- brush:{t:'Brushes',it:[mkIt('pen','pen','Pen'),mkIt('pencil','pencil','Pencil'),mkIt('marker','marker','Highlighter'),mkIt('cal','cal','Calligraphy'),mkIt('spray','spray','Spray paint'),mkIt('water','water','Watercolor'),mkIt('blend','blend','Blend — drag to softly mix colors')]},
+ brush:{t:'Brushes',it:[mkIt('pen','pen','Pen'),mkIt('pencil','pencil','Pencil'),mkIt('cal','cal','Calligraphy'),mkIt('spray','spray','Spray paint'),mkIt('water','water','Watercolor'),mkIt('blend','blend','Blend — drag to softly mix colors')]},
  sel:{t:'Select mode',it:[mkIt('selS','select','Select strokes (Shift+click adds more)'),mkIt('selP','select','Select pixels (draw around an area)')]},
  erase:{t:'Eraser (tip: right-click + drag with ANY tool erases quickly)',it:[mkIt('pixel','eraser','Eraser · pixels',{em:'pixel'}),mkIt('stroke','eraser','Eraser · whole stroke',{em:'stroke'})]},
  shape:{t:'Shapes',it:[mkIt('line','line','Line'),mkIt('bend','bend','Line bend (draw, then drag the middle node)'),mkIt('arrow','arrow','Arrow'),mkIt('rect','rect','Rectangle'),mkIt('rectF','rect','Rectangle · filled',{f:1,ic:'rectF'}),mkIt('ell','ell','Ellipse'),mkIt('ellF','ell','Ellipse · filled',{f:1,ic:'ellF'}),mkIt('tri','tri','Triangle'),mkIt('triF','tri','Triangle · filled',{f:1,ic:'triF'}),mkIt('star','star','Star'),mkIt('starF','star','Star · filled',{f:1,ic:'starF'})]}};
@@ -379,12 +384,13 @@ function bindND(id,a,b,u,set,tag){const bt=$('#'+id),dd=bt.parentElement,m=dd.qu
  bt.onclick=()=>{openDD(m,dd);const c=m.querySelector('[data-v="'+inp.value+'"]');if(c)c.scrollIntoView({block:'center'});inp.select()};
  inp.onchange=()=>{put(inp.value);closeDD()};inp.onkeydown=e=>{e.stopPropagation();if(e.key==='Enter')inp.onchange()};
  m.querySelectorAll('.nl button').forEach(x=>x.onclick=()=>{put(+x.dataset.v);closeDD()})}
-function addRecent(){recent=[color,...recent.filter(c=>c!==color)].slice(0,5000);localStorage.tsRecent=JSON.stringify(recent);rc()}
-const xf=()=>{vw.style.transform=`translate(${pan[0]}px,${pan[1]}px) scale(${Z})`;SEL&&selUI()};
+function addRecent(){recent=[color,...recent.filter(c=>c!==color)].slice(0,5000);try{localStorage[recKey]=JSON.stringify(recent)}catch(e){}rc()}
+const xf=()=>{vw.style.transform=`translate(${pan[0]}px,${pan[1]}px) scale(${Z})`;ovFit();SEL&&selUI();sharpOff();sharpSoon()};
 function fit(){Z=Math.min(st.clientWidth/W,st.clientHeight/H)*.92||1;pan=[(st.clientWidth-W*Z)/2,(st.clientHeight-H*Z)/2];xf()}
 st.onwheel=e=>{e.preventDefault();const r=st.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,z=Math.min(60,Math.max(.05,Z*(e.deltaY<0?1.1:.9)));pan=[mx-(mx-pan[0])*z/Z,my-(my-pan[1])*z/Z];Z=z;xf()};
 const pt=e=>{const r=view.getBoundingClientRect();return[(e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height]};
-function render(){const x=view.getContext('2d');x.setTransform(1,0,0,1,0,0);x.globalAlpha=1;x.fillStyle='#fff';x.fillRect(0,0,CW,CH);const F=frames[cf];if(!F)return;
+function render(){sharpOff();render0();sharpSoon()}
+function render0(){const x=view.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.setTransform(1,0,0,1,0,0);x.globalAlpha=1;x.fillStyle='#fff';x.fillRect(0,0,CW,CH);const F=frames[cf];if(!F)return;
  if(!F.hot){hydrate(F).then(()=>{if(frames[cf]===F)render()});return}
  if(!playing&&$('#pl').classList.contains('hide'))for(let k=on.n;k>=1;k--){const f=frames[cf-k];if(!f)continue;x.globalAlpha=on.a*Math.pow(on.d,k-1);for(const c of f.c)c&&x.drawImage(c,0,0)}
  x.globalAlpha=1;const all=playing||!$('#pl').classList.contains('hide');for(const i of lord){const c=F.c[i],v=vis[i]||all;if(c&&v)x.drawImage(c,0,0);if(SEL&&SEL.f===F&&SEL.l===i&&v){x.save();x.scale(RS,RS);x.translate(SEL.cx,SEL.cy);x.rotate(SEL.r);x.scale(SEL.s,SEL.s);x.drawImage(SEL.c,-SEL.w/2,-SEL.h/2,SEL.w,SEL.h);x.restore()}}
@@ -441,15 +447,14 @@ function dab(g,x,y,dx,dy,r,al){const m=g.getTransform(),a=m.a,d=Math.max(4,Math.
  BS.width=BS.height=k;const b=BS.getContext('2d');b.imageSmoothingQuality='high';b.drawImage(g.canvas,X,Y,d,d,0,0,k,k);
  g.save();g.setTransform(1,0,0,1,0,0);g.beginPath();g.arc(X+d/2,Y+d/2,d/2,0,7);g.clip();g.globalAlpha=Math.min(1,.1+al*.25);g.imageSmoothingEnabled=true;g.drawImage(BS,0,0,k,k,X+dx/ln*o,Y+dy/ln*o,d,d);g.restore()}
 function free(g,s){const p=s.p,z=s.z,t=s.t,R=mul(s.sd||1),bx=sBox(s),dl=tiny(p);
- if(t==='blend'){if(!dl){const q=rs(p,Math.max(2,z*.22));for(let i=0;i<q.length;i++){const a=q[Math.max(0,i-1)],b=q[i];dab(g,b[0],b[1],b[0]-a[0],b[1]-a[1],z/2,s.al)}}return}
+ if(t==='blend'){if(!dl)smudge(g,s);return}
  if(t==='eraser'){g.save();g.globalCompositeOperation='destination-out';g.globalAlpha=1;g.lineCap=g.lineJoin='round';g.strokeStyle=g.fillStyle='#000';g.lineWidth=z;if(dl)dot(g,p[0][0],p[0][1],z/2);else{g.beginPath();pth(g,p);g.stroke()}g.restore();return}
  if(t==='spray'){g.save();g.fillStyle=s.c;g.globalAlpha=Math.min(1,s.al*.6);const q=dl?[p[0]]:rs(p,Math.max(2,z/6));for(const a of q)for(let i=0;i<Math.ceil(z*.5);i++){const an=R()*7,r=z/2*Math.sqrt(R());g.fillRect(a[0]+Math.cos(an)*r,a[1]+Math.sin(an)*r,1.5,1.5)}g.restore();return}
- if(t==='water'){grp(g,s,[bx[0]-z,bx[1]-z,bx[2]+z,bx[3]+z],c=>{c.lineCap=c.lineJoin='round';c.strokeStyle=c.fillStyle=s.c;c.lineWidth=z;c.beginPath();if(dl){c.arc(p[0][0],p[0][1],z/2,0,7);c.fill()}else{pth(c,p);c.stroke();c.globalCompositeOperation='destination-out';c.globalAlpha=.55;c.lineWidth=z*.7;c.stroke()}},.6);
-  g.save();const q=dl?[p[0]]:rs(p,Math.max(2,z*.2));for(const a of q){const r=z*(.5+R()*.35),x=a[0]+(R()-.5)*z*.4,y=a[1]+(R()-.5)*z*.4,gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,s.c);gr.addColorStop(1,s.c+'00');g.globalAlpha=s.al*.07;g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2)}g.restore();return}
+ if(t==='water'){water(g,s,bx,dl,R);return}
  grp(g,s,bx,c=>{c.lineCap=c.lineJoin='round';c.strokeStyle=c.fillStyle=s.c;c.lineWidth=z;
-  if(dl){dot(c,p[0][0],p[0][1],t==='pencil'?z/3:z/2);return}
+  if(dl){if(t==='cal'){c.beginPath();c.ellipse(p[0][0],p[0][1],z/2,z/9,-Math.PI/4,0,7);c.fill()}else dot(c,p[0][0],p[0][1],t==='pencil'?z/3:z/2);return}
   if(t==='pencil'){c.lineWidth=Math.max(1,z*.5);const q=rs(p,Math.max(3,z*.9));for(let k=0;k<2;k++){const a2=q.map(a=>[a[0]+(R()*2-1)*z*.2,a[1]+(R()*2-1)*z*.2]);if(a2.length>1){c.beginPath();pth(c,a2);c.stroke()}}}
-  else if(t==='cal'){c.beginPath();for(const a of rs(p,Math.max(.8,z/8)))for(let i=0;i<12;i++){const th=i/12*6.2832,ex=Math.cos(th)*z/2,ey=Math.sin(th)*z/8,x=a[0]+(ex+ey)*.7071,y=a[1]+(ey-ex)*.7071;i?c.lineTo(x,y):c.moveTo(x,y);if(i==11)c.closePath()}c.fill()}
+  else if(t==='cal'){calli(c,p,z)}
   else{c.beginPath();pth(c,p);c.stroke()}},t==='marker'?.4:t==='pencil'?.65:1)}
 function drawStroke(g,s){
  if(s.t==='fill'){if(s.cv){g.save();g.globalAlpha=s.al;const m=s.m;g.transform(m[0],m[1],m[2],m[3],m[4],m[5]);g.drawImage(s.cv,0,0,s.bw,s.bh);g.restore()}}
@@ -566,7 +571,7 @@ function applyU(u){const f=u.f,k=u.l;ensureBase(f,k);f.S[k]=u.S.slice();if(u.b){
 function doUndo(){if(SEL){SEL=null;ov.getContext('2d').clearRect(0,0,W,H)}const u=undo.pop();if(!u)return;redo.push(curU(u));applyU(u);render();drawTL()}
 function doRedo(){commitSel();const u=redo.pop();if(!u)return;undo.push(curU(u));applyU(u);render();drawTL()}
 function done(t){t=t||tool;touch(frames[cf]);if(t!=='eraser'&&t!=='move'&&t!=='blend')addRecent();dirty.add(cf);clearTimeout(dt);dt=setTimeout(flush,300);drawTL()}
-function lv(){const g=frames[cf].L[cl].getContext('2d');g.save();g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';g.clearRect(0,0,CW,CH);g.drawImage(D.sn,0,0);g.setTransform(RS,0,0,RS,0,0);drawStroke(g,D.s);g.restore()}
+function lv(){const g=frames[cf].L[cl].getContext('2d');if(D.st.t==='blend'){g.save();g.setTransform(RS,0,0,RS,0,0);smudge(g,D.s,D.sm);g.restore();return}g.save();g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';g.clearRect(0,0,CW,CH);g.drawImage(D.sn,0,0);g.setTransform(RS,0,0,RS,0,0);drawStroke(g,D.s);g.restore()}
 function liveSeg(g,a,b){RN=D.rn;g.save();g.setTransform(RS,0,0,RS,0,0);seg(g,a,b,D.st);g.restore();RN=Math.random}
 function eraseAt(a,b){const f=frames[cf],k=cl,S=f.S[k],z=D.st.z,r=z/2;let ch=false;
  const n=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/Math.max(2,r/2)));
@@ -576,7 +581,7 @@ function eraseAt(a,b){const f=frames[cf],k=cl,S=f.S[k],z=D.st.z,r=z/2;let ch=fal
    if(has){bg.save();bg.setTransform(RS,0,0,RS,0,0);bg.globalCompositeOperation='destination-out';bg.globalAlpha=1;bg.lineWidth=z;bg.lineCap='round';bg.beginPath();bg.moveTo(a[0],a[1]);bg.lineTo(b[0],b[1]);bg.stroke();bg.restore();ch=true}}}
  if(ch){rerender(f,k);render()}}
 function hoverSel(e){if(ro||SEL||BEND||space||D)return;const o=ov.getContext('2d');
- if(tool==='eraser'){o.clearRect(0,0,W,H);const p=pt(e);o.strokeStyle='#22d3ee';o.lineWidth=1.5/Z;o.beginPath();o.arc(p[0],p[1],Math.max(1,size/2),0,7);o.stroke();return}
+ if(tool==='eraser'||BRT.includes(tool)){o.clearRect(0,0,W,H);const p=pt(e);o.strokeStyle='#22d3ee';o.lineWidth=1.5/Z;o.beginPath();o.arc(p[0],p[1],Math.max(1,size/2),0,7);o.stroke();return}
  if(tool==='select'){o.clearRect(0,0,W,H);const h=strokeAt(pt(e));if(h){o.strokeStyle='rgba(34,211,238,.55)';o.lineCap=o.lineJoin='round';o.lineWidth=h.s.z+6/Z;for(const pl of polysOf(h.s)){o.beginPath();pl.p.forEach((q,i)=>o[i?'lineTo':'moveTo'](q[0],q[1]));if(pl.c)o.closePath();o.stroke()}}}}
 ov.oncontextmenu=e=>e.preventDefault();
 ov.onpointerleave=()=>{if(!D&&!SEL&&!BEND)ov.getContext('2d').clearRect(0,0,W,H)};
@@ -597,19 +602,19 @@ ov.onpointerdown=e=>{ov.setPointerCapture(e.pointerId);
  if(T_==='eraser'&&eM==='stroke'){D={k:'es',st,l:p};eraseAt(p,p);return}
  if(T_==='move'){const t=mk();t.getContext('2d').drawImage(f.L[cl],0,0);D={k:'mv',p,t,dx:0,dy:0};return}
  D={k:'d',p,l:p,st};if(SH.includes(T_))return;
- const s=mkS(st,{p:[p],sd:st.sd});f.S[cl].push(s);D.s=s;D.sn=mk();D.sn.getContext('2d').drawImage(f.L[cl],0,0);lv();render()};
+ const s=mkS(st,{p:[p],sd:st.sd});f.S[cl].push(s);D.s=s;D.sm={};D.sn=mk();D.sn.getContext('2d').drawImage(f.L[cl],0,0);lv();render()};
 ov.onpointermove=e=>{if(!D){hoverSel(e);return}if(D.k==='pan'){pan=[e.clientX-D.x,e.clientY-D.y];xf();return}if(D.k==='bn'){const q=pt(e),B=BEND;B.n=q;B.c=BC=[2*q[0]-(B.a[0]+B.b[0])/2,2*q[1]-(B.a[1]+B.b[1])/2];bendUI();return}if(D.k[0]==='s'){selMove(e);return}
  const p=rp(pt(e)),g=frames[cf].L[cl].getContext('2d');
- if(D.k==='d'){if(SH.includes(D.st.t)){const o=ov.getContext('2d');o.clearRect(0,0,W,H);sty(o,D.st);shape(o,D.st.t,D.p,p,D.st.f,D.st)}else{for(const ce of(e.getCoalescedEvents?e.getCoalescedEvents():[e])){const q=rp(pt(ce));if(Math.hypot(q[0]-D.l[0],q[1]-D.l[1])<1.5)continue;D.s.p.push(q);D.l=q}if(!D.rq)D.rq=requestAnimationFrame(()=>{const d=D;if(d&&d.rq){d.rq=0;lv();render()}})}}
+ if(D.k==='d'){if(SH.includes(D.st.t)){const o=ov.getContext('2d');o.clearRect(0,0,W,H);sty(o,D.st);shape(o,D.st.t,D.p,p,D.st.f,D.st)}else{for(const ce of(e.getCoalescedEvents?e.getCoalescedEvents():[e])){const q=rp(pt(ce));if(Math.hypot(q[0]-D.l[0],q[1]-D.l[1])<.3)continue;D.s.p.push(q);D.l=q}if(D.st.t==='eraser')ringAt(p);if(!D.rq)D.rq=requestAnimationFrame(()=>{const d=D;if(d&&d.rq){d.rq=0;lv();render()}})}}
  else if(D.k==='mv'){const dx=Math.round(p[0]-D.p[0]),dy=Math.round(p[1]-D.p[1]);D.dx=dx;D.dy=dy;g.globalAlpha=1;g.clearRect(0,0,CW,CH);g.drawImage(D.t,dx*RS,dy*RS);render()}
- else if(D.k==='es'){eraseAt(D.l,p);D.l=p}};
+ else if(D.k==='es'){eraseAt(D.l,p);D.l=p;ringAt(p)}};
 ov.onpointerup=ov.onpointercancel=e=>{if(!D)return;if(D.k==='bn'){D=null;return}
  if(D.k==='d'&&D.st.t==='bend'){const a=D.p,b=rp(pt(e)),m=[(a[0]+b[0])/2,(a[1]+b[1])/2];if(Math.hypot(b[0]-a[0],b[1]-a[1])<4){D=null;return}BEND={a,b,n:m,c:m};BC=m;D=null;bendUI();return}
  if(D.k[0]==='s'){selUp(e);return}
  if(D.k==='d'&&D.s){cancelAnimationFrame(D.rq);D.rq=0;lv();render()}const st=D.st,k=D.k;
  if(k==='d'&&SH.includes(st.t)){ov.getContext('2d').clearRect(0,0,W,H);const q=rp(pt(e));if(Math.hypot(q[0]-D.p[0],q[1]-D.p[1])>=1||st.t==='line'||st.t==='arrow'){const f=frames[cf],s=mkS(st,{p0:D.p,p1:q});f.S[cl].push(s);drawOn(f,cl,s)}render()}
  else if(k==='mv'){shiftLayer(frames[cf],cl,D.dx,D.dy);render()}
- D=null;if(k!=='pan')done(st?st.t:tool)};
+ if((k==='d'||k==='es')&&!BEND&&!SEL)ov.getContext('2d').clearRect(0,0,W,H);D=null;if(k!=='pan')done(st?st.t:tool)};
 document.addEventListener('keydown',e=>{const t=e.target;if(t.matches&&t.matches('input,textarea,select,[contenteditable]'))return;
  if(studio==='note'&&P&&!$('#e').classList.contains('hide')&&NSEL){if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();nDelSel();return}if(e.key==='Escape'){nDesel();return}}
  if(e.code==='Space'){space=true;e.preventDefault()}
@@ -636,7 +641,7 @@ $('#sett').onclick=()=>{const p=$('#pop');p.classList.toggle('hide');if(p.classL
  p.innerHTML=`<b>Project settings</b><label>Title<input id="s1" value="${esc(P.title)}"></label><label>FPS<input id="s2" type="number" min="1" max="120" value="${P.fps}" style="width:70px"></label><label><span>Harsh mode (no frame blending)</span><input type="checkbox" id="s3" ${P.budget?'checked':''}></label><label>BPM<input id="s4" type="number" min="40" max="240" value="${bpm}" style="width:70px"></label>
  <b>Onion skin</b><label><span>Frames before</span>${NUM('o1',on.n,0,30,'')}</label><label><span>Nearest opacity</span>${NUM('o2',Math.round(on.a*100),0,100,'%')}</label><label><span>Falloff</span>${NUM('o3',Math.round(on.d*100),10,100,'%')}</label>
  <b>Collaborators</b>${P.members.map((u,i)=>`<label><span>${esc(P.memberNames[i]||'?')}${u===P.owner?' (owner)':''}</span>${me.uid===P.owner&&u!==P.owner?`<button data-rm="${i}" title="Remove">✕</button>`:''}</label>`).join('')}<div class="row"><input id="s6" placeholder="Username" style="flex:1;min-width:0"><button id="s7">Invite</button></div>`;
- if(P.offline){const c=[...p.querySelectorAll('b')].find(b=>b.textContent==='Collaborators');if(c){while(c.nextSibling)c.nextSibling.remove();c.remove()}}$('#s1').oninput=e=>{P.title=e.target.value;$('#pt').textContent=P.title;pushMeta(['title'])};$('#s2').onchange=e=>{P.fps=Math.max(1,Math.min(120,+e.target.value||24));drawTL();pushMeta(['fps'])};$('#s3').onchange=e=>{P.budget=e.target.checked;drawTL();pushMeta(['budget'])};$('#s4').onchange=e=>{bpm=+e.target.value||120;drawRoll();drawTL();pushMeta(['bpm'])};
+ if(P.offline){const c=[...p.querySelectorAll('b')].find(b=>b.textContent==='Collaborators');if(c){while(c.nextSibling)c.nextSibling.remove();c.remove()}p.insertAdjacentHTML('beforeend','<b>Local storage</b><small style="color:var(--m)">Autosaved in this browser only. Nothing is ever sent to a server.</small><button id="s8">🗑 Erase saved project &amp; start fresh</button>');$('#s8').onclick=eraseLocal}$('#s1').oninput=e=>{P.title=e.target.value;$('#pt').textContent=P.title;pushMeta(['title'])};$('#s2').onchange=e=>{P.fps=Math.max(1,Math.min(120,+e.target.value||24));drawTL();pushMeta(['fps'])};$('#s3').onchange=e=>{P.budget=e.target.checked;drawTL();pushMeta(['budget'])};$('#s4').onchange=e=>{bpm=+e.target.value||120;drawRoll();drawTL();pushMeta(['bpm'])};
  bindND('o1',0,30,'',v=>{on.n=v;render();prime(cf)},'nms');bindND('o2',0,100,'%',v=>{on.a=v/100;render()},'nms');bindND('o3',10,100,'%',v=>{on.d=v/100;render()},'nms');
  $$('[data-rm]').forEach(b=>b.onclick=async()=>{const i=+b.dataset.rm;if(!confirm('Remove '+(P.memberNames[i]||'this collaborator')+' from the project?'))return;const m=P.members.filter((_,k)=>k!==i),n=P.memberNames.filter((_,k)=>k!==i);try{await updateDoc(doc(db,'projects',P.id),{members:m,memberNames:n});P.members=m;P.memberNames=n;toast('Collaborator removed');$('#sett').click();$('#sett').click()}catch(e){toast(e.message)}});
  if($('#s7'))$('#s7').onclick=async()=>{if(await invite(P.id,$('#s6').value,P.title))toast('Invite sent')}};
@@ -778,21 +783,21 @@ async function loadMedia(){try{await syncMedia()}catch(e){console.warn(e)}}
 async function addMedia(fl){if(ro)return toast('View-only project');const MAXA=16*1024*1024;
  for(const f of fl){if(f.size>MAXA){toast(`${f.name} is ${(f.size/1048576).toFixed(1)} MB — audio files are limited to 16 MB`);continue}
   const raw=await f.arrayBuffer();let m;
-  try{m={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:f.name,buf:await actx().decodeAudioData(raw.slice(0)),raw,saved:0};media.push(m)}catch(e){toast("Can't decode "+f.name);continue}
-  buildBin();$('#stat').textContent='Uploading '+f.name+'…';
+  try{m={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:f.name,buf:await actx().decodeAudioData(raw.slice(0)),raw,saved:P.offline?1:0};media.push(m)}catch(e){toast("Can't decode "+f.name);continue}
+  buildBin();if(P.offline){pushMeta(['media','clips']);continue}$('#stat').textContent='Uploading '+f.name+'…';
   try{await uploadMedia();mdirty.add('media');await flushMeta();toast(f.name+' uploaded and shared with your team')}catch(e){toast('Upload failed: '+e.message+' (will retry)');pushMeta(['media'])}
   buildBin()}}
 function place(m){const c={m,name:m.name,buf:m.buf,mid:m.id,s:T,in:0,out:m.buf.duration,gain:1,fi:0,fo:0};clips.push(c);selC=c;buildBin();drawTL();pushMeta(['clips','media'])}
 function stopPv(){if(pv){const s=pv.s;pv=null;s.onended=null;try{s.stop()}catch(e){}}}
 function buildBin(){const el=$('#mbin');if(!el)return;const c=selC;
- el.innerHTML=`<b>Media</b><button id="ma" class="pr">＋ Add audio (mp3, wav…)</button><button id="mrec">${REC?'■ Stop recording':'🎙 Record voice'}</button><small style="color:var(--m)">Max 16 MB per file. Uploaded audio is stored in the project and downloads automatically for everyone who opens it.</small><input type="file" id="maf" accept="audio/*" multiple class="hide">`+(media.map((m,i)=>`<div class="card" style="padding:10px"><small>${esc(m.name)} · ${m.buf.duration.toFixed(1)}s · ${m.saved?'☁ shared':'uploading…'}</small><div class="row"><button data-mp="${i}">${pv&&pv.i===i?'■ Stop':'▶ Preview (5s)'}</button><button data-mr="${i}" title="Rename">✎</button><button data-mt="${i}">To timeline</button><button data-md="${i}">✕</button></div></div>`).join('')||'<small style="color:var(--m)">Add audio files, then put them on the timeline at the playhead.</small>')
+ el.innerHTML=`<b>Media</b><button id="ma" class="pr">＋ Add audio (mp3, wav…)</button><button id="mrec">${REC?'■ Stop recording':'🎙 Record voice'}</button><small style="color:var(--m)">Max 16 MB per file. Uploaded audio is stored in the project and downloads automatically for everyone who opens it.</small><input type="file" id="maf" accept="audio/*" multiple class="hide">`+(media.map((m,i)=>`<div class="card" style="padding:10px"><small>${esc(m.name)} · ${m.buf.duration.toFixed(1)}s · ${P.offline?'💾 on this device':m.saved?'☁ shared':'uploading…'}</small><div class="row"><button data-mp="${i}">${pv&&pv.i===i?'■ Stop':'▶ Preview (5s)'}</button><button data-mr="${i}" title="Rename">✎</button><button data-mt="${i}">To timeline</button><button data-md="${i}">✕</button></div></div>`).join('')||'<small style="color:var(--m)">Add audio files, then put them on the timeline at the playhead.</small>')
  +(c?`<b>Clip: ${esc(c.name)}</b>`+[['Volume','gain',0,2,.05],['Start (s)','s',0,600,.05],['Trim in','in',0,c.m.buf.duration,.05],['Trim out','out',0,c.m.buf.duration,.05],['Fade in','fi',0,20,.1],['Fade out','fo',0,20,.1],['Reverb','rv',0,1,.05],['Sustain tail (s)','sus',0,8,.1]].map(r=>`<label style="display:flex;justify-content:space-between;gap:6px"><small>${r[0]}</small><input type="number" data-cp="${r[1]}" min="${r[2]}" max="${r[3]}" step="${r[4]}" value="${(+c[r[1]]||0).toFixed(2)}" style="width:84px"></label>`).join('')+'<div class="row"><button id="cc2">Copy</button><button id="cx3">Cut</button><button id="cv2">Paste</button><button id="cr">Rename</button><button id="cs">Split at playhead</button><button id="cd">Duplicate</button><button id="cx">Delete</button></div>':'');
  $('#ma').onclick=()=>$('#maf').click();$('#mrec').onclick=toggleRec;
  $$('[data-mr]').forEach(b=>b.onclick=()=>{if(ro)return;const m=media[+b.dataset.mr],n=prompt('Rename audio',m.name);if(!n||!n.trim())return;m.name=n.trim();clips.forEach(c=>{if(c.m===m&&!c.nm)c.name=m.name});buildBin();drawTL();pushMeta(['clips','media'])});
  $('#maf').onchange=e=>addMedia(e.target.files);
  $$('[data-mp]').forEach(b=>b.onclick=()=>{const i=+b.dataset.mp,was=pv&&pv.i===i;stopPv();if(!was){const m=media[i],a=actx(),s=a.createBufferSource();s.buffer=m.buf;s.connect(master);s.onended=()=>{if(pv&&pv.s===s){pv=null;buildBin()}};s.start(0,0,Math.min(5,m.buf.duration));pv={s,i}}buildBin()});
  $$('[data-mt]').forEach(b=>b.onclick=()=>place(media[+b.dataset.mt]));
- $$('[data-md]').forEach(b=>b.onclick=()=>{stopPv();const m=media[+b.dataset.md];media=media.filter(x=>x!==m);clips=clips.filter(x=>x.m!==m);if(selC&&selC.m===m)selC=null;for(let k=0;k<(m.n||0);k++)deleteDoc(doc(db,'projects',P.id,'media',m.id+'_'+k)).catch(()=>{});buildBin();drawTL();pushMeta(['clips','media'])});
+ $$('[data-md]').forEach(b=>b.onclick=()=>{stopPv();const m=media[+b.dataset.md];media=media.filter(x=>x!==m);clips=clips.filter(x=>x.m!==m);if(selC&&selC.m===m)selC=null;if(!P.offline)for(let k=0;k<(m.n||0);k++)deleteDoc(doc(db,'projects',P.id,'media',m.id+'_'+k)).catch(()=>{});buildBin();drawTL();pushMeta(['clips','media'])});
  $$('[data-cp]').forEach(i=>i.onchange=()=>{const k=i.dataset.cp;c[k]=Math.max(+i.min,Math.min(+i.max,+i.value||0));if(c.out<=c.in+.05){if(k==='in')c.in=c.out-.05;else c.out=c.in+.05}buildBin();drawTL();pushMeta(['clips'])});
  if(c){$('#cc2').onclick=()=>clipbd(0);$('#cx3').onclick=()=>clipbd(1);$('#cv2').onclick=()=>clipbd(2);$('#cr').onclick=()=>{if(ro)return;const n=prompt('Rename clip',c.name);if(!n||!n.trim())return;c.nm=c.name=n.trim();buildBin();drawTL();pushMeta(['clips'])};$('#cs').onclick=()=>clipOp(0);$('#cd').onclick=()=>clipOp(1);$('#cx').onclick=()=>clipOp(2)}}
 function clipOp(k){const c=selC;if(!c)return;
@@ -878,18 +883,18 @@ const ser=v=>JSON.stringify(v===undefined?null:v);
 const G={title:()=>P.title,fps:()=>P.fps,budget:()=>!!P.budget,published:()=>!!P.published,bpm:()=>bpm,midi:()=>notes.map(n=>({p:n.p,s:n.s,l:n.l,i:n.i})),nf:()=>frames.length,lay:()=>({n:nLay,o:lord.slice()}),notepad:()=>serNotes(),clips:()=>clips.map(c=>({mid:c.mid,s:c.s,in:c.in,out:c.out,gain:c.gain,fi:c.fi,fo:c.fo,rv:c.rv||0,sus:c.sus||0,nm:c.nm||''})),media:()=>media.map(m=>({id:m.id,name:m.name}))};
 const ALL=Object.keys(G),RK=[...ALL,'members','memberNames'];
 const LBL={title:'settings',fps:'settings',budget:'settings',published:'settings',bpm:'music',midi:'music',notepad:'notes',clips:'audio',media:'audio',nf:'frames',lay:'layers',members:'collaborators',memberNames:'collaborators'};
-const pushMeta=k=>{if(!P||ro||P.offline)return;k.forEach(x=>mdirty.add(x))};
+const pushMeta=k=>{if(!P||ro)return;if(P.offline){locSoon();return}k.forEach(x=>mdirty.add(x))};
 let upP=null;
-async function uploadMedia(){while(upP)await upP.catch(()=>{});upP=(async()=>{for(const m of media)if(!m.saved){const s=b64(m.raw),n=Math.ceil(s.length/700000);for(let k=0;k<n;k+=4){await Promise.all([...Array(Math.min(4,n-k))].map((_,j)=>setDoc(doc(db,'projects',P.id,'media',m.id+'_'+(k+j)),{id:m.id,k:k+j,name:m.name,data:s.slice((k+j)*700000,(k+j+1)*700000)})));$('#stat').textContent=`Uploading ${m.name} ${Math.min(100,Math.round((k+4)/n*100))}%`}m.saved=1;m.n=n}})();try{await upP}finally{upP=null}}
-async function flushMeta(force){if(!P||ro||!mdirty.size)return;const o={byName:me.name,updated:serverTimestamp()},ks=[...mdirty];mdirty.clear();
+async function uploadMedia(){if(!P||P.offline)return;while(upP)await upP.catch(()=>{});upP=(async()=>{for(const m of media)if(!m.saved){const s=b64(m.raw),n=Math.ceil(s.length/700000);for(let k=0;k<n;k+=4){await Promise.all([...Array(Math.min(4,n-k))].map((_,j)=>setDoc(doc(db,'projects',P.id,'media',m.id+'_'+(k+j)),{id:m.id,k:k+j,name:m.name,data:s.slice((k+j)*700000,(k+j+1)*700000)})));$('#stat').textContent=`Uploading ${m.name} ${Math.min(100,Math.round((k+4)/n*100))}%`}m.saved=1;m.n=n}})();try{await upP}finally{upP=null}}
+async function flushMeta(force){if(!P||ro||P.offline||!mdirty.size)return;const o={byName:me.name,updated:serverTimestamp()},ks=[...mdirty];mdirty.clear();
  try{if(ks.includes('media')||ks.includes('clips'))await uploadMedia();
   const out=[];for(const k of ks){if(!G[k])continue;const v=G[k](),t=ser(v);if(!force&&t===pushed[k])continue;o[k]=v;out.push([k,t])}
   if(!out.length)return;
   out.forEach(([k,t])=>{seen[k]=pushed[k]=t;(sent[k]=sent[k]||new Set()).add(t);if(sent[k].size>6)sent[k].delete(sent[k].values().next().value)});
   await updateDoc(doc(db,'projects',P.id),o);$('#stat').textContent='Synced '+new Date().toLocaleTimeString()}
  catch(e){ks.forEach(k=>mdirty.add(k));if(force)throw e;$('#stat').textContent='Sync failed – retrying';clearTimeout(metaT);metaT=setTimeout(()=>flushMeta(),4000)}}
-async function syncMedia(){const want=(P.media||[]).map(m=>m.id);media=media.filter(m=>want.includes(m.id)||!m.saved);
- const need=want.filter(id=>!media.some(m=>m.id===id));
+async function syncMedia(){const want=(P.media||[]).map(m=>m.id);if(!P.offline)media=media.filter(m=>want.includes(m.id)||!m.saved);
+ const need=P.offline?[]:want.filter(id=>!media.some(m=>m.id===id));
  if(need.length){$('#stat').textContent='Downloading shared audio…';const ms=await getDocs(collection(db,'projects',P.id,'media')),g={};ms.docs.forEach(d=>{const v=d.data();if(!need.includes(v.id))return;(g[v.id]=g[v.id]||{name:v.name,p:[]}).p[v.k]=v.data});
   for(const id in g){try{const raw=unb64(g[id].p.join(''));media.push({id,name:g[id].name,buf:await actx().decodeAudioData(raw.slice(0)),raw,saved:1,n:g[id].p.length})}catch(e){console.warn(e)}}$('#stat').textContent=''}
  const si=clips.indexOf(selC);clips=(P.clips||[]).map(c=>{const m=media.find(x=>x.id===c.mid);return m&&{...c,m,name:c.nm||m.name,buf:m.buf}}).filter(Boolean);selC=si>=0?clips[si]||null:null}
@@ -969,10 +974,10 @@ async function saveFile(){commitSel();const st=$('#stat');try{
  const parts=[head+',"frames":['];fr.forEach((s,i)=>parts.push(i?','+s:s));parts.push('],"fs":[');fsP.forEach((s,i)=>parts.push(i?','+s:s));parts.push('],"media":[');
  media.forEach((m,i)=>parts.push((i?',':'')+JSON.stringify({id:m.id,name:m.name,data:b64(m.raw)})));parts.push('],"clips":'+JSON.stringify(G.clips())+'}');
  dlBlob(new Blob(parts,{type:'application/json'}),(P.title||'project').replace(/[^\w-]+/g,'_')+'.twilight.txt');st.textContent=''}catch(e){st.textContent='';toast('Could not pack the file: '+e.message)}}
-const ownerUI=()=>{const o=P&&me.uid===P.owner;['#ul','#pb'].forEach(q=>$(q).classList.toggle('hide',!o));$('#sv').classList.toggle('hide',!!(P&&P.offline));if(P&&P.offline)$('#pb').classList.add('hide')};
+const ownerUI=()=>{const o=P&&me.uid===P.owner;['#ul','#pb'].forEach(q=>$(q).classList.toggle('hide',!o));$('#sv').classList.remove('hide');if(P&&P.offline)$('#pb').classList.add('hide')};
 $('#ul').onclick=()=>{if(ro||me.uid!==P.owner)return toast('Only the owner can upload a save');$('#ulf').click()};
 $('#ulf').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||ro||me.uid!==P.owner||!confirm('Replace this project\'s contents with the uploaded file?'))return;
- try{const o=JSON.parse(await f.text());pause();const nm=[];for(const m of o.media||[]){const raw=unb64(m.data);nm.push({id:m.id,name:m.name,buf:await actx().decodeAudioData(raw.slice(0)),raw,saved:0})}
+ try{const o=JSON.parse(await f.text());pause();const nm=[];for(const m of o.media||[]){const raw=unb64(m.data);nm.push({id:m.id,name:m.name,buf:await actx().decodeAudioData(raw.slice(0)),raw,saved:P.offline?1:0})}
   const nf=(o.frames||[]).map((a,fi)=>coldFrame(a,o.fs&&o.fs[fi]&&o.fs[fi].s,o.fs&&o.fs[fi]&&o.fs[fi].b));TQ.clear();TLEXT=0;
   media=nm;frames=nf.length?nf:[newF()];P.fps=o.fps||24;P.budget=!!o.budget;lyInit(o.lay);pushMeta(['lay']);bpm=o.bpm||120;notes=(o.midi||[]).map(n=>({...n}));loadNotes(o.notepad);P.clips=o.clips||[];P.media=nm.map(m=>({id:m.id,name:m.name}));clips=[];await syncMedia();
   cf=0;T=0;undo=[];redo=[];selC=null;frames.forEach((_,i)=>dirty.add(i));tlSel=-1;await prime(0);render();drawTL();drawRoll();buildBin();await saveAll(true)}catch(x){toast('Could not load file: '+x.message)}};
@@ -1001,8 +1006,120 @@ function clipbd(k){if(ro)return toast('View-only project');
  if(CB.items){pushU();mkSel(CB.items.map(i=>cpS(i)),[W/2,H/2]);render();selUI();return}
  pushU(true);const c=document.createElement('canvas');c.width=CB.c.width;c.height=CB.c.height;c.getContext('2d').drawImage(CB.c,0,0);SEL={c,rc:c,cx:W/2,cy:H/2,cx0:W/2,cy0:H/2,w:CB.w,h:CB.h,s:CB.s,r:CB.r,f:frames[cf],l:cl,items:null};render();selUI()}
 addEventListener('resize',()=>P&&drawTL());
-function openOff(){me={uid:'offline',name:'Offline'};P={id:null,offline:true,title:'Untitled',owner:'offline',members:['offline'],memberNames:['You'],fps:24,budget:false,published:false,bpm:120,nf:1};ro=false;bpm=120;notes=[];media=[];clips=[];selC=null;TQ.clear();TLEXT=0;pfTok++;frames=[newF()];cf=0;cl=0;T=0;undo=[];redo=[];dirty.clear();lyInit(null);
- show('#e');ownerUI();$('#pt').textContent='Offline project';setStudio('anim');loadNotes('');fit();buildTools();render();drawTL();drawRoll();ensure('Piano');$('#stat').textContent='Offline mode: nothing is saved. Download your file before leaving.'}
+/* ---------- CRISP RENDERING / BRUSHES / PER-PROJECT COLOURS ---------- */
+const BRT=['pen','pencil','cal','spray','water','blend'];
+let shT=0,ovK=1;const HLc=document.createElement('canvas');
+function loadRecent(id){recKey='tsRecent_'+id;try{recent=JSON.parse(localStorage[recKey]||'[]')}catch(e){recent=[]}if(!Array.isArray(recent))recent=[]}
+function ringAt(p){const o=ov.getContext('2d');o.clearRect(0,0,W,H);o.strokeStyle='#22d3ee';o.lineWidth=1.5/Z;o.beginPath();o.arc(p[0],p[1],Math.max(1,D.st.z/2),0,7);o.stroke()}
+/* overlay canvas (selection boxes, handles, rings) is re-sized to the zoom level so its lines stay sharp */
+function ovFit(){const k=Math.max(1,Math.min(4,Math.ceil(Z*(window.devicePixelRatio||1))));if(k===ovK&&ov.width===W*k)return;ovK=k;ov.width=W*k;ov.height=H*k;ov.getContext('2d').setTransform(k,0,0,k,0,0);if(SEL)selUI();else if(BEND)bendUI()}
+/* the drawing is re-rendered from its vector strokes at the exact screen resolution whenever the view is idle */
+function sharpOff(){hv.style.display='none';view.style.visibility='visible'}
+function sharpSoon(){clearTimeout(shT);shT=setTimeout(sharpRender,140)}
+function sharpRender(){shT=0;try{
+ if(!P||$('#e').classList.contains('hide')||studio!=='anim'||playing||!$('#pl').classList.contains('hide'))return;
+ if(D){sharpSoon();return}
+ const F=frames[cf];if(!F||!F.hot)return;
+ const cw0=st.clientWidth,ch0=st.clientHeight;if(cw0<20||ch0<20)return;
+ let k=window.devicePixelRatio||1;while(cw0*ch0*k*k>1.6e7&&k>.5)k*=.9;
+ const pw=Math.round(cw0*k),ph=Math.round(ch0*k);
+ if(hv.width!==pw||hv.height!==ph){hv.width=pw;hv.height=ph;HLc.width=pw;HLc.height=ph}
+ hv.style.width=cw0+'px';hv.style.height=ch0+'px';
+ const sc=Z*k,T=[sc,0,0,sc,pan[0]*k,pan[1]*k],g=hv.getContext('2d'),lg=HLc.getContext('2d');
+ g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.clearRect(0,0,pw,ph);
+ g.setTransform(...T);g.fillStyle='#fff';g.fillRect(0,0,W,H);
+ for(let n=on.n;n>=1;n--){const f=frames[cf-n];if(!f)continue;g.globalAlpha=on.a*Math.pow(on.d,n-1);for(const c of f.c)c&&g.drawImage(c,0,0,W,H)}g.globalAlpha=1;
+ const vx0=-pan[0]/Z-20,vy0=-pan[1]/Z-20,vx1=(cw0-pan[0])/Z+20,vy1=(ch0-pan[1])/Z+20;
+ for(const i of lord){if(!vis[i])continue;const S=F.S[i];
+  if(S.some(x=>x.t==='blend')){const c=F.c[i];if(c){g.setTransform(...T);g.drawImage(c,0,0,W,H)}}
+  else{lg.setTransform(1,0,0,1,0,0);lg.globalAlpha=1;lg.globalCompositeOperation='source-over';lg.clearRect(0,0,pw,ph);lg.imageSmoothingQuality='high';lg.setTransform(...T);
+   const b=F.B[i]===undefined?F.c[i]:F.B[i];if(b)lg.drawImage(b,0,0,W,H);
+   for(const x of S){const bb=sBox(x),m=x.z*1.3+4;if(bb[2]+m<vx0||bb[0]-m>vx1||bb[3]+m<vy0||bb[1]-m>vy1)continue;drawStroke(lg,x)}
+   g.setTransform(1,0,0,1,0,0);g.drawImage(HLc,0,0)}
+  if(SEL&&SEL.f===F&&SEL.l===i){g.setTransform(...T);if(SEL.items){const c0=[SEL.cx0,SEL.cy0],c1=[SEL.cx,SEL.cy];for(const it of SEL.items)drawStroke(g,trS(it,c0,c1,SEL.s,SEL.r))}else{g.save();g.translate(SEL.cx,SEL.cy);g.rotate(SEL.r);g.scale(SEL.s,SEL.s);g.drawImage(SEL.c,-SEL.w/2,-SEL.h/2,SEL.w,SEL.h);g.restore()}}}
+ hv.style.display='block';view.style.visibility='hidden'}
+ catch(e){console.warn(e);sharpOff()}}
+addEventListener('resize',()=>{if(P){sharpOff();sharpSoon()}});
+
+/* smudge / blend: carries paint along the brush and mixes it with what is underneath */
+const smCv=d=>{const c=document.createElement('canvas');c.width=c.height=d;return c};
+function smudge(g,s,S){const m=g.getTransform(),sx=m.a,sy=m.d,d=Math.max(6,Math.round(s.z*Math.abs(sx))),p=s.p;if(d>1600||!p.length)return;S=S||{};
+ if(!S.cc){S.cc=smCv(d);S.tc=smCv(d);S.sc=smCv(d);S.kc=smCv(d);const kc=S.kc.getContext('2d'),a=Math.min(.7,.25+.45*s.al),gr=kc.createRadialGradient(d/2,d/2,0,d/2,d/2,d/2);gr.addColorStop(0,'rgba(0,0,0,'+a+')');gr.addColorStop(.6,'rgba(0,0,0,'+a*.75+')');gr.addColorStop(1,'rgba(0,0,0,0)');kc.fillStyle=gr;kc.fillRect(0,0,d,d)}
+ const cc=S.cc.getContext('2d'),tc=S.tc.getContext('2d'),sc=S.sc.getContext('2d'),X=q=>Math.round(q[0]*sx+m.e-d/2),Y=q=>Math.round(q[1]*sy+m.f-d/2),st=Math.max(.8,s.z*.1);
+ g.save();g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';
+ if(!S.last){S.last=p[0];cc.clearRect(0,0,d,d);cc.drawImage(g.canvas,X(p[0]),Y(p[0]),d,d,0,0,d,d);S.k=1}
+ for(;S.k<p.length;S.k++){const b=p[S.k];let a=S.last,ds=Math.hypot(b[0]-a[0],b[1]-a[1]);
+  while(ds>=st){const u=st/ds;a=[a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u];const x=X(a),y=Y(a);
+   tc.globalCompositeOperation='copy';tc.drawImage(S.cc,0,0);tc.globalCompositeOperation='destination-in';tc.drawImage(S.kc,0,0);g.drawImage(S.tc,x,y);
+   sc.globalCompositeOperation='copy';sc.drawImage(S.cc,0,0);
+   cc.clearRect(0,0,d,d);cc.globalAlpha=.5;cc.drawImage(S.sc,0,0);cc.globalAlpha=.5;cc.drawImage(g.canvas,x,y,d,d,0,0,d,d);cc.globalAlpha=1;
+   ds=Math.hypot(b[0]-a[0],b[1]-a[1])}
+  S.last=a}
+ g.restore()}
+
+/* calligraphy: a flat 45-degree nib swept along the smoothed path */
+function calli(c,p,z){const q=rs(p,Math.max(.6,z/14)),lp=p[p.length-1],lq=q[q.length-1];if(Math.hypot(lp[0]-lq[0],lp[1]-lq[1])>.01)q.push(lp);
+ const dx=Math.cos(-Math.PI/4)*z/2,dy=Math.sin(-Math.PI/4)*z/2;
+ for(let i=1;i<q.length;i++){const a=q[i-1],b=q[i];c.beginPath();c.moveTo(a[0]+dx,a[1]+dy);c.lineTo(b[0]+dx,b[1]+dy);c.lineTo(b[0]-dx,b[1]-dy);c.lineTo(a[0]-dx,a[1]-dy);c.closePath();c.fill()}
+ c.lineWidth=Math.max(1,z*.16);c.beginPath();q.forEach((a,i)=>i?c.lineTo(a[0],a[1]):c.moveTo(a[0],a[1]));c.stroke();
+ for(const a of[q[0],q[q.length-1]]){c.beginPath();c.ellipse(a[0],a[1],z/2,z/9,-Math.PI/4,0,7);c.fill()}}
+
+/* watercolour: faint broad wash, pooled edges, soft blooms, pigment veins, backruns and paper grain */
+function water(g,s,bx,dl,R){const p=s.p,z=s.z,a0=s.al,col=s.c,M=z*1.8,bb=[bx[0]-M,bx[1]-M,bx[2]+M,bx[3]+M];
+ const q=dl?[p[0],[p[0][0]+.01,p[0][1]]]:rs(p,Math.max(1.2,z*.12));
+ if(!dl){const lp=p[p.length-1],lq=q[q.length-1];if(Math.hypot(lp[0]-lq[0],lp[1]-lq[1])>.01)q.push(lp)}
+ const nrm=q.map((a,i)=>{const b=q[Math.min(q.length-1,i+1)],c=q[Math.max(0,i-1)],dx=b[0]-c[0],dy=b[1]-c[1],l=Math.hypot(dx,dy)||1;return[-dy/l,dx/l]});
+ const wash=(c,w)=>{c.lineWidth=w;c.beginPath();if(dl){c.arc(p[0][0],p[0][1],w/2,0,7);c.fill()}else{pth(c,q);c.stroke()}};
+ grp(g,s,bb,c=>{c.lineCap=c.lineJoin='round';c.strokeStyle=c.fillStyle=col;wash(c,z*1.7)},.14);
+ grp(g,s,bb,c=>{c.lineCap=c.lineJoin='round';c.strokeStyle=c.fillStyle=col;wash(c,z*1.7);c.globalCompositeOperation='destination-out';c.globalAlpha=1;wash(c,z*1.36)},.22);
+ g.save();g.lineCap=g.lineJoin='round';g.strokeStyle=g.fillStyle=col;
+ for(let i=0;i<q.length;i+=4){const a=q[i],n=nrm[i],o=(R()-.5)*z*.9,x=a[0]+n[0]*o,y=a[1]+n[1]*o,r=z*(.45+R()*.55),gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,col+'ff');gr.addColorStop(1,col+'00');g.globalAlpha=a0*(.05+R()*.08);g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2)}
+ g.fillStyle=col;
+ const nf=dl?0:Math.max(3,Math.min(14,Math.round(z/5)));
+ for(let f=0;f<nf;f++){const off=(R()-.5)*z*1.3,ph=R()*6.28,fr=.08+R()*.25,amp=z*(.04+R()*.1),i0=Math.floor(R()*q.length*.6),i1=Math.min(q.length,i0+Math.max(4,Math.floor(q.length*(.3+R()*.7))));
+  g.globalAlpha=a0*(.12+R()*.16);g.lineWidth=.5+R()*1.1;g.beginPath();
+  for(let i=i0;i<i1;i++){const a=q[i],n=nrm[i],w=off+Math.sin(i*fr+ph)*amp,x=a[0]+n[0]*w,y=a[1]+n[1]*w;i===i0?g.moveTo(x,y):g.lineTo(x,y)}g.stroke()}
+ const nr=dl?2:Math.min(6,Math.round(q.length/25));
+ for(let k=0;k<nr;k++){const j=Math.floor(R()*q.length),a=q[j],n=nrm[j],o=(R()-.5)*z*.8,cx=a[0]+n[0]*o,cy=a[1]+n[1]*o,r=z*(.25+R()*.45),p1=R()*6.28,p2=R()*6.28;
+  g.beginPath();for(let t=0;t<=24;t++){const th=t/24*6.2832,rr=r*(1+.25*Math.sin(th*3+p1)+.15*Math.sin(th*5+p2)),x=cx+Math.cos(th)*rr,y=cy+Math.sin(th)*rr;t?g.lineTo(x,y):g.moveTo(x,y)}g.closePath();
+  g.globalAlpha=a0*.05;g.fill();g.globalAlpha=a0*.2;g.lineWidth=.8;g.stroke()}
+ const gn=dl?30:Math.min(600,Math.round(q.length*z*.12));
+ for(let i=0;i<gn;i++){const j=Math.floor(R()*q.length),a=q[j],n=nrm[j],w=(R()-.5)*z*1.6,r=.4+R()*.9;g.globalAlpha=a0*(.08+R()*.22);g.fillRect(a[0]+n[0]*w,a[1]+n[1]*w,r,r)}
+ g.restore()}
+
+/* ---------- OFFLINE MODE: lives entirely in this browser (IndexedDB). Firebase is never loaded. ---------- */
+let locT=0,locBusy=null,locMed=new Set(),idbP=null;
+const idb=()=>idbP||(idbP=new Promise((res,rej)=>{if(!window.indexedDB)return rej(new Error('IndexedDB unavailable'));const r=indexedDB.open('twilight-local',1);r.onupgradeneeded=()=>{['kv','frames','media'].forEach(n=>r.result.createObjectStore(n))};r.onsuccess=()=>res(r.result);r.onerror=()=>{idbP=null;rej(r.error)}}));
+const req=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const idbDo=(stores,mode,fn)=>idb().then(d=>new Promise((res,rej)=>{const t=d.transaction(stores,mode);let out;try{out=fn(t)}catch(e){try{t.abort()}catch(x){}return rej(e)}Promise.resolve(out).catch(()=>{});t.oncomplete=()=>Promise.resolve(out).then(res,rej);t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error||new Error('Local save aborted'))}));
+function locSoon(){if(!P||!P.offline||P.noLocal)return;clearTimeout(locT);locT=setTimeout(()=>locSave(false),2500);$('#stat').textContent='Unsaved changes…'}
+async function locSave(manual){if(!P||!P.offline||P.noLocal)return;clearTimeout(locT);while(locBusy){try{await locBusy}catch(e){}}
+ locBusy=(async()=>{if(manual)commitSel();const st=$('#stat');st.textContent='Saving to this device…';const ds=[...dirty].sort((a,b)=>a-b),out=[];
+  try{for(let n=0;n<ds.length;n++){const i=ds[n];dirty.delete(i);const f=frames[i];if(!f)continue;const fd=fdata(f);out.push([i,f,{l:fd.l,s:sStr(f),b:fd.b}]);if(n%8===7)await new Promise(r=>setTimeout(r))}
+   const meta={};ALL.forEach(k=>meta[k]=G[k]());const keep=new Set(media.map(m=>m.id)),addM=media.filter(m=>!locMed.has(m.id)),delM=[...locMed].filter(id=>!keep.has(id)),nf=frames.length;
+   await idbDo(['kv','frames','media'],'readwrite',t=>{const F=t.objectStore('frames'),M=t.objectStore('media');t.objectStore('kv').put(meta,'meta');out.forEach(([i,,v])=>F.put(v,i));F.delete(IDBKeyRange.lowerBound(nf));addM.forEach(m=>M.put({id:m.id,name:m.name,raw:m.raw},m.id));delM.forEach(id=>M.delete(id))});
+   addM.forEach(m=>locMed.add(m.id));delM.forEach(id=>locMed.delete(id));
+   out.forEach(([i,f,v])=>{if(frames[i]===f&&f.hot&&!dirty.has(i)){f.src={l:v.l,b:v.b};f.ed=0}});
+   st.textContent='Saved on this device '+new Date().toLocaleTimeString();manual&&toast('Saved in this browser')}
+  catch(e){ds.forEach(i=>dirty.add(i));st.textContent='Local save failed';toast('Local save failed: '+e.message)}})();
+ try{await locBusy}finally{locBusy=null;evict()}}
+async function locLoad(){
+ const[m,ks,vs,ms]=await idbDo(['kv','frames','media'],'readonly',t=>Promise.all([req(t.objectStore('kv').get('meta')),req(t.objectStore('frames').getAllKeys()),req(t.objectStore('frames').getAll()),req(t.objectStore('media').getAll())]));
+ if(!m)return false;
+ P.title=m.title||P.title;P.fps=m.fps||24;P.budget=!!m.budget;bpm=P.bpm=m.bpm||120;notes=(m.midi||[]).map(n=>({...n}));
+ const n=Math.max(1,m.nf||0);frames=[];ks.forEach((k,j)=>{const v=vs[j];if(v)frames[k]=coldFrame(v.l,v.s,v.b)});frames.length=n;for(let i=0;i<n;i++)frames[i]=frames[i]||newF();
+ P.nf=n;lyInit(m.lay);cf=0;
+ const nm={};(m.media||[]).forEach(x=>nm[x.id]=x.name);
+ for(const x of ms){try{media.push({id:x.id,name:nm[x.id]||x.name,buf:await actx().decodeAudioData(x.raw.slice(0)),raw:x.raw,saved:1,n:0});locMed.add(x.id)}catch(e){console.warn(e)}}
+ P.media=media.map(x=>({id:x.id,name:x.name}));P.clips=m.clips||[];clips=[];await syncMedia();loadNotes(m.notepad);await prime(0);return true}
+async function eraseLocal(){if(!confirm('Erase the saved offline project from this browser and start fresh? This cannot be undone.'))return;
+ try{clearTimeout(locT);while(locBusy){try{await locBusy}catch(e){}}await idbDo(['kv','frames','media'],'readwrite',t=>{['kv','frames','media'].forEach(n=>t.objectStore(n).clear())});locMed=new Set();try{localStorage.removeItem('tsRecent_offline')}catch(e){}$('#pop').classList.add('hide');await openOff();toast('Started a fresh offline project')}catch(e){toast(e.message)}}
+async function openOff(){pause();clearTimeout(locT);me={uid:'offline',name:'Offline'};P={id:null,offline:true,title:'Offline project',owner:'offline',members:['offline'],memberNames:['You'],fps:24,budget:false,published:false,bpm:120,nf:1,media:[],clips:[]};ro=false;bpm=120;notes=[];media=[];clips=[];selC=null;TQ.clear();TLEXT=0;pfTok++;frames=[newF()];cf=0;cl=0;T=0;undo=[];redo=[];dirty.clear();locMed=new Set();lyInit(null);
+ loadRecent('offline');let loaded=false,msg='Offline mode: autosaved in this browser only - nothing leaves your device';
+ try{loaded=await locLoad()}catch(e){console.warn(e);P.noLocal=1;msg='Browser storage unavailable ('+e.message+'). Download your file before leaving.'}
+ show('#e');ownerUI();$('#pt').textContent=P.title;setStudio('anim');if(!loaded)loadNotes('');fit();buildTools();render();drawTL();drawRoll();ensure('Piano');$('#stat').textContent=msg;
+ try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&P&&P.offline)locSave(false)});addEventListener('pagehide',()=>{if(P&&P.offline)locSave(false)});
 $('#off').onclick=openOff;
 </script>
 </body></html>
