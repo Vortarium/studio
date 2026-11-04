@@ -107,13 +107,14 @@ button:has(svg){display:inline-flex;align-items:center;justify-content:center;ga
 .nbt{min-width:64px;padding:4px 8px;font-size:12px}.nmenu{min-width:130px;gap:6px}.nin{width:100%}.nl{display:flex;flex-direction:column;overflow:auto;max-height:220px}.nl button{border:0;background:transparent;text-align:left;padding:4px 10px;border-radius:6px}.nl button:hover,.nl button.on{background:var(--l)}
 #rm{position:fixed;inset:0;z-index:90;background:#000a;display:flex;align-items:center;justify-content:center}.rbox{padding:18px!important}.rgrid{display:grid;grid-template-columns:repeat(10,34px);gap:6px;margin:14px 0}.rgrid .sw{width:34px;height:34px;border-radius:8px}.sw.e{border:1px dashed var(--l);background:none}
 .lr{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;border:1px solid var(--l);border-radius:10px;cursor:grab;background:var(--p2)}.lr.ov{border-color:var(--b)}
+.nl button{flex:none;white-space:nowrap;min-height:30px;padding:6px 18px!important;width:100%}.nmenu{min-width:170px}.nl{min-width:150px}
 </style></head>
 <body>
 <div id="glow"></div><div class="orb" style="width:420px;height:420px;background:#8b5cf6;left:-80px;top:-60px"></div><div class="orb" style="width:360px;height:360px;background:#22d3ee;right:-60px;bottom:-40px;animation-delay:-6s"></div><div class="orb" style="width:300px;height:300px;background:#f472b6;right:30%;top:10%;animation-delay:-11s"></div>
 
 <div id="a" class="screen"><h1 class="logo" style="font-size:12px;letter-spacing:.6em">create · compose · imagine</h1>
 <div class="glass"><h1 class="logo">Twilight Studios</h1><input id="u" placeholder="Username" autocomplete="username"><input id="pw" type="text" placeholder="Password" autocomplete="off" autocapitalize="off" spellcheck="false" style="-webkit-text-security:disc;text-security:disc"><div id="err"></div>
-<div class="row"><button id="li" class="pr" style="flex:1">Log in</button><button id="su" style="flex:1">Create account</button></div></div></div>
+<div class="row"><button id="li" class="pr" style="flex:1">Log in</button><button id="su" style="flex:1">Create account</button></div><button id="off" style="border-style:dashed" title="Work without an account or internet; nothing is saved">Offline mode</button></div></div>
 
 <div id="b" class="screen hide"><div class="bh"><h1 class="logo">Twilight</h1><nav><button data-t="mine" class="on">Projects</button><button data-t="comm">Community</button><button data-t="inb">Inbox <i id="ib"></i></button></nav><span id="hi"></span><button id="lo">Log out</button></div>
 <section id="mine" class="grid"></section><section id="comm" class="grid hide"></section><section id="inb" class="grid hide"></section></div>
@@ -136,11 +137,11 @@ button:has(svg){display:inline-flex;align-items:center;justify-content:center;ga
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-analytics.js";
-import {getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,onAuthStateChanged,updateProfile} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
+import {getAuth,initializeAuth,inMemoryPersistence,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,onAuthStateChanged,updateProfile} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
 import {getFirestore,doc,setDoc,getDoc,getDocs,addDoc,collection,query,where,onSnapshot,updateDoc,deleteDoc,arrayUnion,serverTimestamp,deleteField,orderBy,limit,startAfter} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js";
 const firebaseConfig = { apiKey: "AIzaSyCj-nmQEwNtM5O17sJMSq4ywf6TieAvAUY", authDomain: "roentgen-df895.firebaseapp.com", projectId: "roentgen-df895", storageBucket: "roentgen-df895.firebasestorage.app", messagingSenderId: "893786159876", appId: "1:893786159876:web:2ec7c9e6b86af08999ee51", measurementId: "G-K42NV4YEP0" };
 const app = initializeApp(firebaseConfig);try{getAnalytics(app)}catch(e){}
-const auth=getAuth(app),db=getFirestore(app);
+const auth=initializeAuth(app,{persistence:inMemoryPersistence}),db=getFirestore(app);
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const show=id=>{$$('.screen').forEach(s=>s.classList.add('hide'));$(id).classList.remove('hide')};
@@ -316,7 +317,7 @@ async function saveFrames(ds,say){let n=0,err=null;
   if(say)$('#stat').textContent=`Saving frames ${++n}/${ds.length}…`});
  if(err)throw err}
 const dropOld=async()=>{const old=[];for(let i=frames.length;i<P.nf;i++)old.push(i);await pool(old,6,i=>deleteDoc(doc(db,'projects',P.id,'frames',pad(i))).catch(()=>{}));P.nf=frames.length};
-async function saveAll(manual){if(!P||ro)return;if(savingP){if(!manual)return;try{await savingP}catch(e){}}
+async function saveAll(manual){if(!P||ro||P.offline)return;if(savingP){if(!manual)return;try{await savingP}catch(e){}}
  savingP=(async()=>{commitSel();$('#stat').textContent='Saving…';try{ALL.forEach(k=>mdirty.add(k));await flushMeta(true);await saveFrames([...dirty].sort((a,b)=>a-b),true);await dropOld();
   $('#stat').textContent='Saved '+new Date().toLocaleTimeString();manual&&toast('Project saved')}catch(e){$('#stat').textContent='Save failed';toast(e.message)}})();
  try{await savingP}finally{savingP=null;evict()}}
@@ -326,7 +327,7 @@ setInterval(()=>{if(!$('#e').classList.contains('hide'))saveAll(false)},900000);
 const isCollab=()=>P&&!ro&&P.members.length>1&&Object.entries(PRES).some(([u,v])=>u!==me.uid&&v&&v.t&&Date.now()-(v.t.toMillis?v.t.toMillis():Date.now())<75000);
 setInterval(async()=>{if(!P||ro||$('#e').classList.contains('hide'))return;collab=isCollab();if(!collab)return;try{await doFlush();await flushMeta();if(pendMeta){const d=pendMeta;pendMeta=null;onMeta(d)}await applyInbox()}catch(e){}},4000);
 addEventListener('beforeunload',e=>{if(P&&!ro&&dirty.size&&!collab){e.preventDefault();e.returnValue=''}});
-$('#sv').onclick=()=>saveAll(true);$('#bk').onclick=()=>{pause();unsub&&unsub();unsubP&&unsubP();stopPres();saveAll(false);board()};
+$('#sv').onclick=()=>saveAll(true);$('#bk').onclick=()=>{if(P&&P.offline){if(!confirm('Leave offline mode? Everything not downloaded will be lost.'))return;pause();P=null;me=null;$('#stat').textContent='';show('#a');return}pause();unsub&&unsub();unsubP&&unsubP();stopPres();saveAll(false);board()};
 
 /* ---------- STUDIO SWITCH ---------- */
 function setStudio(s){studio=s;$$('#hd nav button').forEach(b=>b.classList.toggle('on',b.dataset.s===s));$('#st').classList.toggle('hide',s!=='anim');$('#sM').classList.toggle('hide',s!=='music');$('#sN').classList.toggle('hide',s!=='note');$('#ptools').classList.toggle('hide',s!=='anim');$('#tl').classList.toggle('hide',s==='note');$('#ly').classList.toggle('hide',s!=='anim');$('#pop').classList.add('hide');$('#lp').classList.add('hide');if(s==='music'){buildMusic();drawRoll();$('#ps').scrollTop=(HI-72)*RH}drawTL()}
@@ -387,7 +388,7 @@ function render(){const x=view.getContext('2d');x.setTransform(1,0,0,1,0,0);x.gl
  if(!F.hot){hydrate(F).then(()=>{if(frames[cf]===F)render()});return}
  if(!playing&&$('#pl').classList.contains('hide'))for(let k=on.n;k>=1;k--){const f=frames[cf-k];if(!f)continue;x.globalAlpha=on.a*Math.pow(on.d,k-1);for(const c of f.c)c&&x.drawImage(c,0,0)}
  x.globalAlpha=1;const all=playing||!$('#pl').classList.contains('hide');for(const i of lord){const c=F.c[i],v=vis[i]||all;if(c&&v)x.drawImage(c,0,0);if(SEL&&SEL.f===F&&SEL.l===i&&v){x.save();x.scale(RS,RS);x.translate(SEL.cx,SEL.cy);x.rotate(SEL.r);x.scale(SEL.s,SEL.s);x.drawImage(SEL.c,-SEL.w/2,-SEL.h/2,SEL.w,SEL.h);x.restore()}}
- if(all&&FR>.02&&!P.budget){const N=frames[cf+1];if(N&&N.hot){const b=XB.getContext('2d');b.globalAlpha=1;b.fillStyle='#fff';b.fillRect(0,0,CW,CH);for(const i of lord)N.c[i]&&b.drawImage(N.c[i],0,0);x.globalAlpha=FR;x.drawImage(XB,0,0);x.globalAlpha=1}}}
+ if(all&&FR>.02&&!P.budget){const N=frames[cf+1];if(N&&!N.hot)hydrate(N);if(N&&N.hot){const e_=FR*FR*(3-2*FR),b=XB.getContext('2d');b.globalAlpha=1;b.fillStyle='#fff';b.fillRect(0,0,CW,CH);for(const i of lord)N.c[i]&&b.drawImage(N.c[i],0,0);x.globalAlpha=e_;x.drawImage(XB,0,0);x.globalAlpha=1}}}
 const curS=()=>({t:tool,c:color,z:size,al:alpha,f:fillOn?1:0});
 let RN=Math.random;
 const mul=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
@@ -447,7 +448,7 @@ function free(g,s){const p=s.p,z=s.z,t=s.t,R=mul(s.sd||1),bx=sBox(s),dl=tiny(p);
   g.save();const q=dl?[p[0]]:rs(p,Math.max(2,z*.2));for(const a of q){const r=z*(.5+R()*.35),x=a[0]+(R()-.5)*z*.4,y=a[1]+(R()-.5)*z*.4,gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,s.c);gr.addColorStop(1,s.c+'00');g.globalAlpha=s.al*.07;g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2)}g.restore();return}
  grp(g,s,bx,c=>{c.lineCap=c.lineJoin='round';c.strokeStyle=c.fillStyle=s.c;c.lineWidth=z;
   if(dl){dot(c,p[0][0],p[0][1],t==='pencil'?z/3:z/2);return}
-  if(t==='pencil'){c.lineWidth=Math.max(1,z*.5);const q=rs(p,Math.max(1.5,z*.3));for(let k=0;k<2;k++){c.beginPath();q.forEach((a,i)=>{const x=a[0]+(R()*2-1)*z*.25,y=a[1]+(R()*2-1)*z*.25;i?c.lineTo(x,y):c.moveTo(x,y)});c.stroke()}}
+  if(t==='pencil'){c.lineWidth=Math.max(1,z*.5);const q=rs(p,Math.max(3,z*.9));for(let k=0;k<2;k++){const a2=q.map(a=>[a[0]+(R()*2-1)*z*.2,a[1]+(R()*2-1)*z*.2]);if(a2.length>1){c.beginPath();pth(c,a2);c.stroke()}}}
   else if(t==='cal'){c.beginPath();for(const a of rs(p,Math.max(.8,z/8)))for(let i=0;i<12;i++){const th=i/12*6.2832,ex=Math.cos(th)*z/2,ey=Math.sin(th)*z/8,x=a[0]+(ex+ey)*.7071,y=a[1]+(ey-ex)*.7071;i?c.lineTo(x,y):c.moveTo(x,y);if(i==11)c.closePath()}c.fill()}
   else{c.beginPath();pth(c,p);c.stroke()}},t==='marker'?.4:t==='pencil'?.65:1)}
 function drawStroke(g,s){
@@ -502,7 +503,7 @@ const bendUI=()=>{const o=ov.getContext('2d');o.clearRect(0,0,W,H);if(!BEND)retu
 function commitBend(){if(!BEND)return;const B=BEND;BEND=null;BC=null;pushU();const f=frames[cf],s=mkS(curS(),{t:'bend',p0:B.a,p1:B.b,bc:rp(B.c)});f.S[cl].push(s);drawOn(f,cl,s);ov.getContext('2d').clearRect(0,0,W,H);render();done('bend')}
 function commitSel(){commitBend();if(!SEL)return;const S=SEL,f=S.f,k=S.l;
  if(S.items){const c0=[S.cx0,S.cy0],c1=[S.cx,S.cy];for(const it of S.items)addS(f,k,trS(it,c0,c1,S.s,S.r))}
- if(S.rc){ensureBase(f,k);if(!f.B[k])f.B[k]=mk();const g=f.B[k].getContext('2d');g.save();g.globalAlpha=1;g.scale(RS,RS);g.translate(S.cx,S.cy);g.rotate(S.r);g.scale(S.s,S.s);g.drawImage(S.rc,-S.w/2,-S.h/2,S.w,S.h);g.restore()}
+ if(S.rc){ensureBase(f,k);if(!f.B[k])f.B[k]=mk();const g=f.B[k].getContext('2d');g.save();g.globalCompositeOperation='source-over';g.globalAlpha=1;g.scale(RS,RS);g.translate(S.cx,S.cy);g.rotate(S.r);g.scale(S.s,S.s);g.drawImage(S.rc,-S.w/2,-S.h/2,S.w,S.h);g.restore()}
  rerender(f,k);selFin();SEL=null;render();drawTL()}
 function delSel(){if(!SEL)return;selFin();SEL=null;render();drawTL()}
 function bbox(items){let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const s of items){const b=sBox(s);x0=Math.min(x0,b[0]);y0=Math.min(y0,b[1]);x1=Math.max(x1,b[2]);y1=Math.max(y1,b[3])}x0=Math.floor(Math.max(-W,x0));y0=Math.floor(Math.max(-H,y0));x1=Math.ceil(Math.min(2*W,x1));y1=Math.ceil(Math.min(2*H,y1));return[x0,y0,Math.max(2,x1-x0),Math.max(2,y1-y0)]}
@@ -522,10 +523,10 @@ function liftRect(ax,ay,bx,by){const f=frames[cf],l=cl;let items=f.S[l].filter(s
  const im=bc.getContext('2d').getImageData(0,0,CW,CH),d=im.data,m=new Uint8Array(CW*CH),dx0=Math.max(0,ax*RS),dy0=Math.max(0,ay*RS),dx1=Math.min(CW-1,bx*RS),dy1=Math.min(CH-1,by*RS);let x0=CW,y0=CH,x1=-1,y1=-1;
  for(let y=dy0;y<=dy1;y++)for(let x=dx0;x<=dx1;x++){const n=y*CW+x;if(d[n*4+3]>0){m[n]=1;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}}
  if(x1<0)return toast('Nothing to select in that box on this layer');finishLift(l,im,m,x0,y0,x1,y1)}
-function liftLasso(Q){const f=frames[cf],l=cl;let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;Q.forEach(q=>{x0=Math.min(x0,q[0]);y0=Math.min(y0,q[1]);x1=Math.max(x1,q[0]);y1=Math.max(y1,q[1])});x0=Math.max(0,Math.floor(x0*RS));y0=Math.max(0,Math.floor(y0*RS));x1=Math.min(CW,Math.ceil(x1*RS));y1=Math.min(CH,Math.ceil(y1*RS));const w=x1-x0,h=y1-y0;if(w<4||h<4)return;
+function liftLasso(Q){const f=frames[cf],l=cl;let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;Q.forEach(q=>{x0=Math.min(x0,q[0]);y0=Math.min(y0,q[1]);x1=Math.max(x1,q[0]);y1=Math.max(y1,q[1])});x0=Math.max(0,Math.floor(x0*RS));y0=Math.max(0,Math.floor(y0*RS));x1=Math.min(CW,Math.ceil(x1*RS));y1=Math.min(CH,Math.ceil(y1*RS));const w=x1-x0,h=y1-y0;if(w<16||h<16)return;
  const src=f.L[l],sp=document.createElement('canvas');sp.width=w;sp.height=h;const sg=sp.getContext('2d');sg.beginPath();Q.forEach((q,i)=>sg[i?'lineTo':'moveTo'](q[0]*RS-x0,q[1]*RS-y0));sg.closePath();sg.clip();sg.drawImage(src,-x0,-y0);
  if(blk(sp))return toast('Nothing to select inside that area on this layer');
- pushU(true);const nb=mk(),n2=nb.getContext('2d');n2.drawImage(f.L[l],0,0);n2.globalCompositeOperation='destination-out';n2.beginPath();Q.forEach((q,i)=>n2[i?'lineTo':'moveTo'](q[0]*RS,q[1]*RS));n2.closePath();n2.fill();
+ pushU(true);const nb=mk(),n2=nb.getContext('2d');n2.drawImage(f.L[l],0,0);n2.globalCompositeOperation='destination-out';n2.beginPath();Q.forEach((q,i)=>n2[i?'lineTo':'moveTo'](q[0]*RS,q[1]*RS));n2.closePath();n2.fill();n2.globalCompositeOperation='source-over';
  f.B[l]=nb;f.S[l]=[];rerender(f,l);const cx=(x0+w/2)/RS,cy=(y0+h/2)/RS;SEL={c:sp,rc:sp,cx,cy,cx0:cx,cy0:cy,w:w/RS,h:h/RS,s:1,r:0,f,l,items:null};render();selUI()}
 function findHit(p){const px=Math.round(p[0]*RS),py=Math.round(p[1]*RS),R=Math.round(6*RS),f=frames[cf];for(const l of lyOrder()){if(!vis[l])continue;const bc=baseOf(f,l);if(!bc)continue;
   const x0=Math.max(0,px-R),y0=Math.max(0,py-R),w=Math.min(CW,px+R+1)-x0,h=Math.min(CH,py+R+1)-y0;if(w<=0||h<=0)continue;
@@ -599,13 +600,13 @@ ov.onpointerdown=e=>{ov.setPointerCapture(e.pointerId);
  const s=mkS(st,{p:[p],sd:st.sd});f.S[cl].push(s);D.s=s;D.sn=mk();D.sn.getContext('2d').drawImage(f.L[cl],0,0);lv();render()};
 ov.onpointermove=e=>{if(!D){hoverSel(e);return}if(D.k==='pan'){pan=[e.clientX-D.x,e.clientY-D.y];xf();return}if(D.k==='bn'){const q=pt(e),B=BEND;B.n=q;B.c=BC=[2*q[0]-(B.a[0]+B.b[0])/2,2*q[1]-(B.a[1]+B.b[1])/2];bendUI();return}if(D.k[0]==='s'){selMove(e);return}
  const p=rp(pt(e)),g=frames[cf].L[cl].getContext('2d');
- if(D.k==='d'){if(SH.includes(D.st.t)){const o=ov.getContext('2d');o.clearRect(0,0,W,H);sty(o,D.st);shape(o,D.st.t,D.p,p,D.st.f,D.st)}else{if(Math.hypot(p[0]-D.l[0],p[1]-D.l[1])<1.5)return;D.s.p.push(p);D.l=p;lv();render()}}
+ if(D.k==='d'){if(SH.includes(D.st.t)){const o=ov.getContext('2d');o.clearRect(0,0,W,H);sty(o,D.st);shape(o,D.st.t,D.p,p,D.st.f,D.st)}else{for(const ce of(e.getCoalescedEvents?e.getCoalescedEvents():[e])){const q=rp(pt(ce));if(Math.hypot(q[0]-D.l[0],q[1]-D.l[1])<1.5)continue;D.s.p.push(q);D.l=q}if(!D.rq)D.rq=requestAnimationFrame(()=>{const d=D;if(d&&d.rq){d.rq=0;lv();render()}})}}
  else if(D.k==='mv'){const dx=Math.round(p[0]-D.p[0]),dy=Math.round(p[1]-D.p[1]);D.dx=dx;D.dy=dy;g.globalAlpha=1;g.clearRect(0,0,CW,CH);g.drawImage(D.t,dx*RS,dy*RS);render()}
  else if(D.k==='es'){eraseAt(D.l,p);D.l=p}};
 ov.onpointerup=ov.onpointercancel=e=>{if(!D)return;if(D.k==='bn'){D=null;return}
  if(D.k==='d'&&D.st.t==='bend'){const a=D.p,b=rp(pt(e)),m=[(a[0]+b[0])/2,(a[1]+b[1])/2];if(Math.hypot(b[0]-a[0],b[1]-a[1])<4){D=null;return}BEND={a,b,n:m,c:m};BC=m;D=null;bendUI();return}
  if(D.k[0]==='s'){selUp(e);return}
- const st=D.st,k=D.k;
+ if(D.k==='d'&&D.s){cancelAnimationFrame(D.rq);D.rq=0;lv();render()}const st=D.st,k=D.k;
  if(k==='d'&&SH.includes(st.t)){ov.getContext('2d').clearRect(0,0,W,H);const q=rp(pt(e));if(Math.hypot(q[0]-D.p[0],q[1]-D.p[1])>=1||st.t==='line'||st.t==='arrow'){const f=frames[cf],s=mkS(st,{p0:D.p,p1:q});f.S[cl].push(s);drawOn(f,cl,s)}render()}
  else if(k==='mv'){shiftLayer(frames[cf],cl,D.dx,D.dy);render()}
  D=null;if(k!=='pan')done(st?st.t:tool)};
@@ -635,10 +636,10 @@ $('#sett').onclick=()=>{const p=$('#pop');p.classList.toggle('hide');if(p.classL
  p.innerHTML=`<b>Project settings</b><label>Title<input id="s1" value="${esc(P.title)}"></label><label>FPS<input id="s2" type="number" min="1" max="120" value="${P.fps}" style="width:70px"></label><label><span>Harsh mode (no frame blending)</span><input type="checkbox" id="s3" ${P.budget?'checked':''}></label><label>BPM<input id="s4" type="number" min="40" max="240" value="${bpm}" style="width:70px"></label>
  <b>Onion skin</b><label><span>Frames before</span>${NUM('o1',on.n,0,30,'')}</label><label><span>Nearest opacity</span>${NUM('o2',Math.round(on.a*100),0,100,'%')}</label><label><span>Falloff</span>${NUM('o3',Math.round(on.d*100),10,100,'%')}</label>
  <b>Collaborators</b>${P.members.map((u,i)=>`<label><span>${esc(P.memberNames[i]||'?')}${u===P.owner?' (owner)':''}</span>${me.uid===P.owner&&u!==P.owner?`<button data-rm="${i}" title="Remove">✕</button>`:''}</label>`).join('')}<div class="row"><input id="s6" placeholder="Username" style="flex:1;min-width:0"><button id="s7">Invite</button></div>`;
- $('#s1').oninput=e=>{P.title=e.target.value;$('#pt').textContent=P.title;pushMeta(['title'])};$('#s2').onchange=e=>{P.fps=Math.max(1,Math.min(120,+e.target.value||24));drawTL();pushMeta(['fps'])};$('#s3').onchange=e=>{P.budget=e.target.checked;drawTL();pushMeta(['budget'])};$('#s4').onchange=e=>{bpm=+e.target.value||120;drawRoll();drawTL();pushMeta(['bpm'])};
+ if(P.offline){const c=[...p.querySelectorAll('b')].find(b=>b.textContent==='Collaborators');if(c){while(c.nextSibling)c.nextSibling.remove();c.remove()}}$('#s1').oninput=e=>{P.title=e.target.value;$('#pt').textContent=P.title;pushMeta(['title'])};$('#s2').onchange=e=>{P.fps=Math.max(1,Math.min(120,+e.target.value||24));drawTL();pushMeta(['fps'])};$('#s3').onchange=e=>{P.budget=e.target.checked;drawTL();pushMeta(['budget'])};$('#s4').onchange=e=>{bpm=+e.target.value||120;drawRoll();drawTL();pushMeta(['bpm'])};
  bindND('o1',0,30,'',v=>{on.n=v;render();prime(cf)},'nms');bindND('o2',0,100,'%',v=>{on.a=v/100;render()},'nms');bindND('o3',10,100,'%',v=>{on.d=v/100;render()},'nms');
  $$('[data-rm]').forEach(b=>b.onclick=async()=>{const i=+b.dataset.rm;if(!confirm('Remove '+(P.memberNames[i]||'this collaborator')+' from the project?'))return;const m=P.members.filter((_,k)=>k!==i),n=P.memberNames.filter((_,k)=>k!==i);try{await updateDoc(doc(db,'projects',P.id),{members:m,memberNames:n});P.members=m;P.memberNames=n;toast('Collaborator removed');$('#sett').click();$('#sett').click()}catch(e){toast(e.message)}});
- $('#s7').onclick=async()=>{if(await invite(P.id,$('#s6').value,P.title))toast('Invite sent')}};
+ if($('#s7'))$('#s7').onclick=async()=>{if(await invite(P.id,$('#s6').value,P.title))toast('Invite sent')}};
 
 /* ---------- TIMELINE ---------- */
 const tc=$('#tc'),tw=$('#tw'),tiEl=$('#ti');
@@ -877,7 +878,7 @@ const ser=v=>JSON.stringify(v===undefined?null:v);
 const G={title:()=>P.title,fps:()=>P.fps,budget:()=>!!P.budget,published:()=>!!P.published,bpm:()=>bpm,midi:()=>notes.map(n=>({p:n.p,s:n.s,l:n.l,i:n.i})),nf:()=>frames.length,lay:()=>({n:nLay,o:lord.slice()}),notepad:()=>serNotes(),clips:()=>clips.map(c=>({mid:c.mid,s:c.s,in:c.in,out:c.out,gain:c.gain,fi:c.fi,fo:c.fo,rv:c.rv||0,sus:c.sus||0,nm:c.nm||''})),media:()=>media.map(m=>({id:m.id,name:m.name}))};
 const ALL=Object.keys(G),RK=[...ALL,'members','memberNames'];
 const LBL={title:'settings',fps:'settings',budget:'settings',published:'settings',bpm:'music',midi:'music',notepad:'notes',clips:'audio',media:'audio',nf:'frames',lay:'layers',members:'collaborators',memberNames:'collaborators'};
-const pushMeta=k=>{if(!P||ro)return;k.forEach(x=>mdirty.add(x))};
+const pushMeta=k=>{if(!P||ro||P.offline)return;k.forEach(x=>mdirty.add(x))};
 let upP=null;
 async function uploadMedia(){while(upP)await upP.catch(()=>{});upP=(async()=>{for(const m of media)if(!m.saved){const s=b64(m.raw),n=Math.ceil(s.length/700000);for(let k=0;k<n;k+=4){await Promise.all([...Array(Math.min(4,n-k))].map((_,j)=>setDoc(doc(db,'projects',P.id,'media',m.id+'_'+(k+j)),{id:m.id,k:k+j,name:m.name,data:s.slice((k+j)*700000,(k+j+1)*700000)})));$('#stat').textContent=`Uploading ${m.name} ${Math.min(100,Math.round((k+4)/n*100))}%`}m.saved=1;m.n=n}})();try{await upP}finally{upP=null}}
 async function flushMeta(force){if(!P||ro||!mdirty.size)return;const o={byName:me.name,updated:serverTimestamp()},ks=[...mdirty];mdirty.clear();
@@ -917,7 +918,7 @@ const hue=n=>`hsl(${[...String(n)].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7)%3
 function drawPres(){const el=$('#pres');if(!el)return;const now=Date.now();
  el.innerHTML=Object.entries(PRES).map(([u,v])=>[u,v||{}]).filter(([u,v])=>{const t=v.t?(v.t.toMillis?v.t.toMillis():+v.t):now;return now-t<75000}).map(([u,v])=>`<span class="av${u===me.uid?' me':''}" title="${esc(v.n||'?')}${u===me.uid?' (you)':''}" style="background:${hue(v.n)}">${esc(String(v.n||'?').charAt(0).toUpperCase())}</span>`).join('')}
 const beat=()=>{if(!P||ro||P.members.length<2||$('#e').classList.contains('hide'))return;updateDoc(doc(db,'projects',P.id),{['presence.'+me.uid]:{n:me.name,t:serverTimestamp()}}).catch(()=>{})};
-function stopPres(keep){clearInterval(presT);clearInterval(presR);if(!keep&&P&&!ro)updateDoc(doc(db,'projects',P.id),{['presence.'+me.uid]:deleteField()}).catch(()=>{})}
+function stopPres(keep){clearInterval(presT);clearInterval(presR);if(!keep&&P&&!ro&&!P.offline)updateDoc(doc(db,'projects',P.id),{['presence.'+me.uid]:deleteField()}).catch(()=>{})}
 function startPres(){stopPres(true);beat();presT=setInterval(beat,30000);presR=setInterval(drawPres,8000)}
 addEventListener('pagehide',()=>stopPres());
 function initSync(raw){seen={};sent={};pushed={};mdirty.clear();RK.forEach(k=>seen[k]=ser(raw[k]));ALL.forEach(k=>pushed[k]=ser(G[k]()));
@@ -968,7 +969,7 @@ async function saveFile(){commitSel();const st=$('#stat');try{
  const parts=[head+',"frames":['];fr.forEach((s,i)=>parts.push(i?','+s:s));parts.push('],"fs":[');fsP.forEach((s,i)=>parts.push(i?','+s:s));parts.push('],"media":[');
  media.forEach((m,i)=>parts.push((i?',':'')+JSON.stringify({id:m.id,name:m.name,data:b64(m.raw)})));parts.push('],"clips":'+JSON.stringify(G.clips())+'}');
  dlBlob(new Blob(parts,{type:'application/json'}),(P.title||'project').replace(/[^\w-]+/g,'_')+'.twilight.txt');st.textContent=''}catch(e){st.textContent='';toast('Could not pack the file: '+e.message)}}
-const ownerUI=()=>{const o=P&&me.uid===P.owner;['#ul','#pb'].forEach(q=>$(q).classList.toggle('hide',!o))};
+const ownerUI=()=>{const o=P&&me.uid===P.owner;['#ul','#pb'].forEach(q=>$(q).classList.toggle('hide',!o));$('#sv').classList.toggle('hide',!!(P&&P.offline));if(P&&P.offline)$('#pb').classList.add('hide')};
 $('#ul').onclick=()=>{if(ro||me.uid!==P.owner)return toast('Only the owner can upload a save');$('#ulf').click()};
 $('#ulf').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||ro||me.uid!==P.owner||!confirm('Replace this project\'s contents with the uploaded file?'))return;
  try{const o=JSON.parse(await f.text());pause();const nm=[];for(const m of o.media||[]){const raw=unb64(m.data);nm.push({id:m.id,name:m.name,buf:await actx().decodeAudioData(raw.slice(0)),raw,saved:0})}
@@ -1000,5 +1001,8 @@ function clipbd(k){if(ro)return toast('View-only project');
  if(CB.items){pushU();mkSel(CB.items.map(i=>cpS(i)),[W/2,H/2]);render();selUI();return}
  pushU(true);const c=document.createElement('canvas');c.width=CB.c.width;c.height=CB.c.height;c.getContext('2d').drawImage(CB.c,0,0);SEL={c,rc:c,cx:W/2,cy:H/2,cx0:W/2,cy0:H/2,w:CB.w,h:CB.h,s:CB.s,r:CB.r,f:frames[cf],l:cl,items:null};render();selUI()}
 addEventListener('resize',()=>P&&drawTL());
+function openOff(){me={uid:'offline',name:'Offline'};P={id:null,offline:true,title:'Untitled',owner:'offline',members:['offline'],memberNames:['You'],fps:24,budget:false,published:false,bpm:120,nf:1};ro=false;bpm=120;notes=[];media=[];clips=[];selC=null;TQ.clear();TLEXT=0;pfTok++;frames=[newF()];cf=0;cl=0;T=0;undo=[];redo=[];dirty.clear();lyInit(null);
+ show('#e');ownerUI();$('#pt').textContent='Offline project';setStudio('anim');loadNotes('');fit();buildTools();render();drawTL();drawRoll();ensure('Piano');$('#stat').textContent='Offline mode: nothing is saved. Download your file before leaving.'}
+$('#off').onclick=openOff;
 </script>
 </body></html>
